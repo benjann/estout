@@ -1,0 +1,246 @@
+{smcl}
+{* 04sep2009}{...}
+{hline}
+help for {hi:estwrite}
+{hline}
+
+{title:Command to backup model estimates on disk}
+
+
+{p 8 15 2}
+{cmdab:estwrite} [{it:namelist} {cmd:using}] {it:filename}
+ [{cmd:,} {cmd:id(}{it:varname}{cmd:)} {cmd:alt} {cmd:estsave}
+ {cmdab:r:eplace} {cmdab:a:ppend} ]
+
+{p 8 15 2}
+{cmdab:estread} [{it:namelist} {cmd:using}] {it:filename}
+ [{cmd:,} {cmd:id(}{it:varname}{cmd:)} {cmd:estsave} {cmdab:d:escribe} ]
+
+
+{p 4 4 2}
+where {it:namelist} is a name, a list of names, or {cmd:_all}; the {cmd:*}
+and {cmd:?} wildcards are allowed. A name may also be {cmd:.}, meaning
+the current (active) estimates.
+
+
+
+{title:Description}
+
+{p 4 4 2} {cmd:estwrite} exports models previously fitted and stored by
+{helpb estimates store} to {it:filename} on disk.
+{it:namelist} provides the names of the stored estimation sets to
+be exported. You may use the {cmd:*} and {cmd:?} wildcards in
+{it:namelist}. The results estimated last may be indicated by a period
+({cmd:.}), even if they have not yet been stored. If no model is specified,
+{cmd:estwrite} uses the model fitted last.
+
+{p 4 4 2}{cmd:estread} reimports the saved estimation sets from
+{it:filename}. Specify {it:namelist} to select the estimation sets to be
+imported. The default is to import all saved estimation sets.
+
+{p 4 4 2}In both cases, if {it:filename} is specified without an extension,
+{cmd:.sters} is assumed.
+
+{p 4 4 2}{cmd:estwrite} uses the technology behind {helpb estimates save}
+to save the estimation sets, but has the following advantages over
+{helpb estimates save}:
+
+{p 8 12 4}
+(1) Multiple sets may be stored in one file. (A similar feature has been added
+to {helpb estimates save} in Stata 11. However, {cmd:estwrite} supports named sets
+and allows storing or retrieving multiple sets in one call.)
+
+{p 8 12 4}
+(2) The {cmd:e(sample)} (estimation sample) may be stored and
+recovered using the {cmd:id()} option.
+
+
+{p 8 12 4}
+(3) {cmd:e()}-returns that have a name starting with
+an underscore (e.g. {cmd:e(_abc)}) are preserved.
+
+{p 4 4 2}{cmd:estwrite} can also be used in Stata 8 and Stata 9, where the
+{helpb estimates save} command is not available.
+
+{p 9 12 4}
+o{space 1} In Stata 9 (or if option
+{cmd:alt} is specified), {cmd:estwrite} uses its own Mata-based algorithm
+to store the sets (using the same file format as with the default method).
+
+{p 9 12 4}
+o{space 1} In Stata 8 (or if option {cmd:estsave} is specified), the estimates are
+stored in a Stata dataset using Michael Blasnik's {helpb estsave}
+command, which must be installed on the system in this case (see
+ {net "describe http://fmwww.bc.edu/repec/bocode/e/estsave":ssc describe estsave}). {cmd:.dta}
+is assumed, if {it:filename} is specified without an extension.
+
+
+{title:Technical note}
+
+{p 4 4 2} In Stata 8 and Stata 9 (or if option {cmd:alt} or option
+{cmd:estsave} is specified) a restored model might differ from the original
+model in terms of the model's representation in memory (although the
+represented information is the same). This has to due with the fact that some
+of Stata's estimation commands (such as, e.g., {helpb regress}) post their results in
+{cmd:e()} in a special way that cannot be reproduced by {helpb ereturn post}, which
+is used by {cmd:estwrite} to restore the results in Stata 8 and Stata 9.
+
+{p 4 4 2} It may not be possible to replay the full standard output of such
+a model after importing the model by {cmd:estread} (for example, typing
+{cmd:regress} without arguments returns error on an imported model that was
+fitted by {helpb regress}). However, all results are, in fact, preserved and
+post-estimation commands such as {helpb test} or {helpb estimates table}
+should work as usual.
+
+
+{title:Options}
+
+{p 4 8 2}
+{cmd:id(}{it:varname}{cmd:)} specifies a unique identifier for the
+observations and causes the {cmd:e(sample)} to be stored with the
+estimates. {cmd:id()} specified with {cmd:estread} reimports such
+estimates.
+
+{p 4 8 2} {cmd:estsave} specifies that the estimates be stored in a Stata
+dataset using Michael Blasnik's {helpb estsave} command. {cmd:estsave} is
+default in Stata 8.
+
+{p 4 8 2}{cmd:alt} causes the estimation sets to be stored without making
+use of the technology behind {helpb estimates save}. {cmd:alt} is usually a
+bit faster than the default method and also results in somewhat smaller
+file sizes. A disadvantage is, however, that full output may not be
+replayed for some commands after reimporting the models (see the technical
+note above). Specify the {cmd:alt} option in Stata 10 if you want to be
+able to restore the saved models in Stata 9. Similarly, specify {cmd:alt}
+in Stata 11 if you want to be able to restore the saved models in Stata 10
+or Stata 9. {cmd:alt} is default the Stata 9.
+
+{p 4 8 2}{cmd:replace} permits {cmd:estwrite} to overwrite an existing file.
+
+{p 4 8 2}{cmd:append} causes {cmd:estwrite} to add the estimation sets to an existing file. Make
+sure to use unique names for the added estimation sets. Models saved with
+or without the {cmd:alt} option may be combined in a single file. The
+{cmd:id()} option has to be specified if the file to append to was created
+with {cmd:id()} option (and the values of the ID variables have to
+coincide). Similarly, the {cmd:id()} option is not allowed if the file to
+append to was created without {cmd:id()} option.
+
+{p 4 8 2}{cmd:describe} causes {cmd:estread} to display information on the
+contents of {it:filename} without importing the estimation sets.
+
+
+{title:Returned results}
+
+{p 4 8 2}{cmd:estwrite} and {cmd:estread} return in {cmd:r(names)} the names of
+the exported/imported estimation sets.
+
+
+{title:Examples}
+
+{p 4 4 2}Basic usage:
+
+        {com}. sysuse auto
+        {txt}(1978 Automobile Data)
+
+        {com}. regress mpg price weight
+        {txt}(output omitted)
+
+        {com}. estimates store model1, title(Model 1)
+        {txt}
+        {com}. logit foreign mpg weight
+        {txt}(output omitted)
+
+        {com}. estimates store model2, title(Model 2)
+        {txt}
+        {com}. estwrite * using mymodels
+        {res}{txt}(saving model1)
+        {res}{txt}(saving model2)
+        {res}{txt}(file mymodels.sters saved)
+
+        {com}. estimates clear
+        {txt}
+        {com}. estread mymodels
+        {res}
+        {txt}{hline 13}{c TT}{hline 41}
+                name {c |} command      depvar       npar  title
+        {hline 13}{c +}{hline 41}
+        {ralign 12:{stata estimates replay model1:model1}}{col 22}{txt:{c |}}{res}{col 24}{lalign 12:regress}{col 37}{lalign 12:mpg}{col 50}   3{col 56}{it:Model 1}
+        {txt}{ralign 12:{stata estimates replay model2:model2}}{col 22}{txt:{c |}}{res}{col 24}{lalign 12:logit}{col 37}{lalign 12:foreign}{col 50}   3{col 56}{it:Model 2}
+        {txt}{hline 13}{c BT}{hline 41}
+
+
+{p 4 4 2}Add models to an existing file:
+
+        {com}. regress mpg price weight foreign displ
+        {txt}(output omitted)
+
+        {com}. estimates store model3, title(Extended Model 1)
+        {txt}
+        {com}. estwrite model3 using mymodels, append
+        {res}{txt}(appending model3)
+        {res}{txt}(file mymodels.sters saved)
+
+        {com}. estimates clear
+        {txt}
+        {com}. estread mymodels
+        {res}
+        {txt}{hline 13}{c TT}{hline 49}
+                name {c |} command      depvar       npar  title
+        {hline 13}{c +}{hline 49}
+        {ralign 12:{stata estimates replay model1:model1}}{col 22}{txt:{c |}}{res}{col 24}{lalign 12:regress}{col 37}{lalign 12:mpg}{col 50}   3{col 56}{it:Model 1}
+        {txt}{ralign 12:{stata estimates replay model2:model2}}{col 22}{txt:{c |}}{res}{col 24}{lalign 12:logit}{col 37}{lalign 12:foreign}{col 50}   3{col 56}{it:Model 2}
+        {txt}{ralign 12:{stata estimates replay model3:model3}}{col 22}{txt:{c |}}{res}{col 24}{lalign 12:regress}{col 37}{lalign 12:mpg}{col 50}   5{col 56}{it:Extended Model 1}
+        {txt}{hline 13}{c BT}{hline 49}
+
+
+{p 4 4 2}Preserve the {cmd:e(sample)}:
+
+        {com}. sysuse auto
+        {txt}(1978 Automobile Data)
+
+        {com}. count
+        {res}   74
+        {txt}
+        {com}. mlogit rep78 mpg price weight if rep78>=3
+        {txt}(output omitted)
+
+        {com}. count if e(sample)
+        {res}   59
+        {txt}
+        {com}. estwrite . using mymodels, replace id(make)
+        {res}{txt}(saving active estimates)
+        {res}{txt}(file mymodels.sters saved)
+
+        {com}. estimates clear
+        {txt}
+        {com}. estread mymodels, id(make)
+        {res}
+        {txt}{hline 13}{c TT}{hline 41}
+                name {c |} command      depvar       npar  title
+        {hline 13}{c +}{hline 41}
+        {ralign 12:.}{col 22}{txt:{c |}}{res}{col 24}{lalign 12:mlogit}{col 37}{lalign 12:rep78}{col 50}   8{col 56}{it:}
+        {txt}{hline 13}{c BT}{hline 41}
+
+        {com}. count if e(sample)
+        {res}   59
+        {txt}
+
+{title:Author}
+
+{p 4 4 2} Ben Jann, ETH Zurich, jannb@ethz.ch
+
+{pstd}
+    Thanks for citing this software as follows:
+
+{pmore}
+    Jann, B. 2005. estwrite: Stata module to store estimation results on disk. Available
+    from http://ideas.repec.org/c/boc/bocode/s450201.html.
+
+
+{title:Also see}
+
+    Manual:  {hi:[R] estimates}
+
+{p 4 13 2}Online:  help for
+ {helpb estimates};
+ {helpb estsave} (if installed)

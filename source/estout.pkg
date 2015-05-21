@@ -1,0 +1,18 @@
+v 3
+d estout
+d Author: Ben Jann, University of Bern, jann@soz.unibe.ch
+d
+d Distribution-Date: 21mar2015
+f _eststo.ado
+f _eststo.hlp
+f estadd.ado
+f estadd.hlp
+f estout.ado
+f estout.hlp
+f estout_mystyle.def
+f estpost.ado
+f estpost.hlp
+f eststo.ado
+f eststo.hlp
+f esttab.ado
+f esttab.hlp
