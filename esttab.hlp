@@ -1,5 +1,5 @@
 {smcl}
-{* 21mar2015}{...}
+{* 29may2015}{...}
 {hi:help esttab}{right:also see: {helpb estout}, {helpb eststo}, {helpb estadd}, {helpb estpost}}
 {right: {browse "http://repec.org/bocode/e/estout"}}
 {hline}
@@ -126,6 +126,8 @@ add lines at the end of the table
 set the document format ({cmd:smcl} is the default)
       {cmdab:f:ragment}{col 26}{...}
 suppress table opening and closing (LaTeX, HTML)
+      [{cmd:no}]{cmd:float}{col 26}{...}
+whether to use a float environment or not (LaTeX)
       {cmd:page}[{cmd:(}{it:packages}{cmd:)}]{col 26}{...}
 add page opening and closing (LaTeX, HTML)
       {cmdab:align:ment(}{it:string}{cmd:)}{col 26}{...}
@@ -436,10 +438,11 @@ default is {cmd:interaction(" $\times$ ")}.
 {cmd:title(}{it:string}{cmd:)} may be used to provide a title for the
 table. If specified, {it:string} is printed at the top of the table.
 Note that specifying a title causes the table to be set up as a
-floating object in LaTeX mode. You may want to set a label for
+floating object in LaTeX mode (unless the {cmd:nofloat} option 
+is specified). You may want to set a label for
 referencing in this case. For example, if you type
 {cmd:title(...\label{tab1})}, then "\ref{tab1}" could be used in the
-LaTeX document to point to the table.
+LaTeX document to point to the table. Specify the 
 
 {p 4 8 2} 
 {cmd:mtitles}, without argument, specifies that for each model the title 
@@ -545,6 +548,12 @@ processors.
 {p 4 8 2}
 {cmd:fragment} causes the table's opening and closing specifications
 to be suppressed. This is relevant primarily in LaTeX and HTML mode.
+
+{p 4 8 2}
+{cmd:float} causes the table to be set up as a floating object in LaTeX mode 
+(table environment). Providing a {cmd:title()} implies {cmd:float}. Specify 
+{cmd:nofloat} to omit the float environment in this case (this is useful, e.g., 
+for LyX users).
 
 {p 4 8 2}
 {cmd:page}[{cmd:(}{it:packages}{cmd:)}] adds opening and closing code

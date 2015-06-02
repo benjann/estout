@@ -1,4 +1,4 @@
-*! version 2.0.7  20mar2015  Ben Jann
+*! version 2.0.8  29may2015  Ben Jann
 *! wrapper for estout
 
 program define esttab
@@ -203,12 +203,12 @@ program define esttab
 // - tex
     local tex_open0           `""% `cdate' `ctime'" \documentclass{article} \`texpkgs' \`=cond("\`longtable'"!="","\usepackage{longtable}","")' \begin{document} """'
     local tex_close0          `""" \end{document} """'
-    local tex_open            `"\`=cond("\`longtable'"=="", "\begin{table}[htbp]\centering", `"{"')'"'
-    local tex_close           `"\`=cond("\`longtable'"=="", "\end{table}", "}")'"'
+    local tex_open            `"`"\`=cond("\`longtable'"=="", "\begin{table}[htbp]\centering", "{")'"'"'
+    local tex_close           `"`"\`=cond("\`longtable'"=="", "\end{table}", "}")'"'"'
     local tex_caption         `"\caption{@title}"'
     local tex_open2           `"\`=cond("\`longtable'"!="", "\begin{longtable}", "\begin{tabular" + cond("\`width'"=="", "}", "*}{\`width'}"))'"'
-    local tex_close2          `"\`=cond("\`longtable'"!="", "\end{longtable}", "\end{tabular" + cond("\`width'"=="", "}", "*}"))'"'
-    local tex_toprule         `"\`="\hline\hline" + cond("\`longtable'"!="", "\endfirsthead\hline\endhead\hline\endfoot\endlastfoot", "")'"'
+    local tex_close2          `"`"\`=cond("\`longtable'"!="", "\end{longtable}", "\end{tabular" + cond("\`width'"=="", "}", "*}"))'"'"'
+    local tex_toprule         `"`"\`="\hline\hline" + cond("\`longtable'"!="", "\endfirsthead\hline\endhead\hline\endfoot\endlastfoot", "")'"'"'
     local tex_midrule         `""\hline""'
     local tex_bottomrule      `""\hline\hline""'
     local tex_topgap          `""'
@@ -240,7 +240,7 @@ program define esttab
     local booktabs_caption    `"`macval(tex_caption)'"'
     local booktabs_open2      `"`macval(tex_open2)'"'
     local booktabs_close2     `"`macval(tex_close2)'"'
-    local booktabs_toprule    `"\`="\toprule" + cond("\`longtable'"!="", "\endfirsthead\midrule\endhead\midrule\endfoot\endlastfoot", "")'"'
+    local booktabs_toprule    `"`"\`="\toprule" + cond("\`longtable'"!="", "\endfirsthead\midrule\endhead\midrule\endfoot\endlastfoot", "")'"'"'
     local booktabs_midrule    `""\midrule""'
     local booktabs_bottomrule `""\bottomrule""'
     local booktabs_topgap     `"`macval(tex_topgap)'"'
@@ -315,7 +315,7 @@ program define esttab
     gettoken chunk using0: using
     if `"`macval(star2)'"'!="" local star star
     foreach opt in constant gaps lines star abbrev depvars numbers parentheses ///
-        notes mtitles type outfilenoteoff {
+        notes mtitles type outfilenoteoff float {
         NotBothAllowed "``opt''" `no`opt''
     }
     NotBothAllowed "`staraux'" `nostar'
@@ -708,28 +708,32 @@ program define esttab
             }
             local opening `"``mode'_open0'"'
         }
-        if `"`macval(title)'"'!="" {
-            local opening `"`macval(opening)' ``mode'_open'"'
-            if "`mode0'"=="tex" & "`star'"!="" {
+        if "`mode0'"=="tex" {
+            if (`"`macval(title)'"'!="" | "`float'"!="") & "`nofloat'"=="" {
+                local opening `"`macval(opening)' ``mode'_open'"'
+            }
+            else if "`star'"!="" {
+                local opening `"`macval(opening)' "{""'
+            }
+            if "`star'"!="" {
                 local opening `"`macval(opening)' "\def\sym#1{\ifmmode^{#1}\else\(^{#1}\)\fi}""'
             }
-            if !("`longtable'"!="" & "`mode0'"=="tex") {
+            if `"`macval(title)'"'!="" & "`longtable'"=="" {
+                local opening `"`macval(opening)' `"``mode'_caption'"'"'
+            }
+        }
+        else {
+            local opening `"`macval(opening)' ``mode'_open'"'
+            if `"`macval(title)'"'!="" {
                 local opening `"`macval(opening)' ``mode'_caption'"'
             }
         }
-        else if "`mode0'"=="tex" & "`star'"!="" {
-            local opening `"`macval(opening)' "{" "\def\sym#1{\ifmmode^{#1}\else\(^{#1}\)\fi}""'
-        }
-        else if "`mode0'"!="tex" {
-            local opening `"`macval(opening)' ``mode'_open'"'
-        }
-        local opening `"`macval(opening)' ``mode'_open2'"'
         if  "`mode0'"=="tex" {
             if `"`labcol2'"'!="" local lstubtex "lc"
             else local lstubtex "l"
             if `"`width'"'!="" local extracolsep "@{\hskip\tabcolsep\extracolsep\fill}"
             if `"`macval(alignment)'"'!="" {
-                local opening `"`macval(opening)'{`extracolsep'`lstubtex'*{@E}{`macval(alignment)'}}"'
+                local opening `"`macval(opening)' `"``mode'_open2'{`extracolsep'`lstubtex'*{@E}{`macval(alignment)'}}"'"'
             }
             else {
                 if `nocellsopt' {
@@ -738,13 +742,16 @@ program define esttab
                 else {
                     MakeTeXColspecAlt, `cells'
                 }
-                local opening `"`macval(opening)'{`extracolsep'`lstubtex'*{@E}{`value'}}"'
+                local opening `"`macval(opening)' `"``mode'_open2'{`extracolsep'`lstubtex'*{@E}{`value'}}"'"'
             }
             if "`longtable'"!="" {
                 if `"`macval(title)'"'!="" {
-                    local opening `"`macval(opening)' ``mode'_caption'\\\"'
+                    local opening `"`macval(opening)' `"``mode'_caption'\\\"'"'
                 }
             }
+        }
+        else {
+            local opening `"`macval(opening)' ``mode'_open2'"'
         }
         if "`mode0'"=="html" {
             local brr
@@ -775,11 +782,16 @@ program define esttab
             local closing `"`macval(thenote)'"'
         }
         local closing `"`macval(closing)' ``mode'_close2'"'
-        if `"`macval(title)'"'!="" | "`mode0'"!="tex" {
-            local closing `"`macval(closing)' ``mode'_close'"'
+        if "`mode0'"=="tex" {
+            if (`"`macval(title)'"'!="" | "`float'"!="") & "`nofloat'"=="" {
+                local closing `"`macval(closing)' ``mode'_close'"'
+            }
+            else if "`star'"!="" {
+                local closing `"`macval(closing)' "}""'
+            }
         }
-        else if "`mode0'"=="tex" & "`star'"!="" {
-            local closing `"`macval(closing)' }"'
+        else {
+            local closing `"`macval(closing)' ``mode'_close'"'
         }
         if "`page'"!="" {
             local closing `"`macval(closing)' ``mode'_close0'"'
@@ -977,6 +989,7 @@ program _more_syntax
         BRackets ///
         NONOTEs NOTEs /// without s in helpfile
         LONGtable ///
+        NOFLOAT float ///
         ONEcell ///
         NOEQLInes ///
         NOOUTFILENOTEOFF outfilenoteoff
