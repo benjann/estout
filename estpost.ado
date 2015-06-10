@@ -132,7 +132,7 @@ program _estpost_namesandlabels // used by some routines such as estpost_tabulat
     else c_local labels ""
 end
 program _estpost_eqnamesandlabels // used by some routines such as estpost_tabulate
-    version 8.2                   // returns locals eqnames and eqlabels
+    version 9.2                   // returns locals eqnames and eqlabels
     args varname values0 labels0
     if `"`values0'"'=="" { // generate values: 1 2 3 ...
         local i 0
@@ -391,7 +391,7 @@ prog estpost_tabulate_oneway, eclass
     eret mat pct   = `percent'
 end
 prog estpost_tabulate_twoway, eclass
-    version 8.2
+    version 9.2
     local caller : di _caller() // not used
 
     // syntax
