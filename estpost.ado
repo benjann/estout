@@ -162,15 +162,15 @@ program _estpost_eqnamesandlabels // used by some routines such as estpost_tabul
         }
         local names0 `names0' `value'
         if `"`lbl'"'=="" local lbl "`value'"
-        local labels `"`labels'`lblspace'`"`lbl'"'"'
+        local labels `"`macval(labels)'`lblspace'`"`macval(lbl)'"'"'
         local lblspace " "
         if `haslabels' continue
         if `"`lbl'"'=="" {
             local names `"`names'`space'`value'"'
         }
         else {
-            if regexm(`"`lbl'"', `"[:."]"') local haslabels 1
-            else if length(`"`lbl'"')>30    local haslabels 1
+            if regexm(`"`macval(lbl)'"', `"[:."]"') local haslabels 1
+            else if length(`"`macval(lbl)'"')>30    local haslabels 1
             else {
                 local names `"`names'`space'`"`lbl'"'"'
             }
@@ -182,7 +182,7 @@ program _estpost_eqnamesandlabels // used by some routines such as estpost_tabul
     }
     c_local eqnames       `"`names'"'         // to be used as matrix roweqs or coleqs
     if `haslabels' {
-        c_local eqlabels  `"`labels'"'        // list of labels
+        c_local eqlabels  `"`macval(labels)'"'        // list of labels
     }
     else c_local eqlabels ""
 end
@@ -519,7 +519,7 @@ prog estpost_tabulate_twoway, eclass
     eret local wexp `"`exp'"'
     eret local wtype `"`weight'"'
     eret local labels `"`labels'"'
-    eret local eqlabels `"`eqlabels'"'
+    eret local eqlabels `"`macval(eqlabels)'"'
     eret local colvar "`cvar'"
     eret local rowvar "`rvar'"
     eret local subcmd "tabulate"
