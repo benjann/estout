@@ -1,4 +1,4 @@
-*! version 1.1.7  16jun2015  Ben Jann
+*! version 1.1.8  16jun2015  Ben Jann
 * 1. estpost
 * 2. estpost_summarize
 * 3. estpost_tabulate
@@ -560,9 +560,17 @@ prog estpost_tabstat, eclass
         _estpost_markout2 `touse' `varlist'
     }
     if "`by'"!="" {
+        capt confirm string variable `by'
+        local numby = (_rc!=0)
+        if `numby' {
+            tempname tmpby
+            qui gen `:type `by'' `tmpby' = `by'
+        }
+        else local tmpby `by'
         if "`missing'"=="" markout `touse' `by', strok
-        local byopt "by(`by')"
+        local byopt "by(`tmpby')"
     }
+    else local numby 0
     qui count if `touse'
     local N = r(N)
     if `N'==0 error 2000
@@ -613,12 +621,22 @@ prog estpost_tabstat, eclass
         local labels `"`labels'`space'`"`r(name`i')'"'"'
     }
     if `R'==1 {
-        _estpost_namesandlabels "" "" `"`labels'"' "`elabels'" // sets names, savenames, labels
+        if `numby' {
+            _estpost_namesandlabels "`by'" `"`labels'"' "" "`elabels'" // sets names, savenames, labels
+        }
+        else {
+            _estpost_namesandlabels "" "" `"`labels'"' "`elabels'" // sets names, savenames, labels
+        }
     }
     else {
-        _estpost_eqnamesandlabels "" "" `"`labels'"' "`elabels'" // sets eqnames, eqlabels
+        if `numby' {
+            _estpost_eqnamesandlabels "`by'" `"`labels'"' "" "`elabels'" // sets eqnames, eqlabels
+        }
+        else {
+            _estpost_eqnamesandlabels "" "" `"`labels'"' "`elabels'" // sets eqnames, eqlabels
+        }
         local names `"`eqnames'"'
-        local labels `"`eqlabels'"'
+        local labels `"`macval(eqlabels)'"'
     }
     forv i = 1/`g' {
         gettoken name names : names
@@ -654,7 +672,7 @@ prog estpost_tabstat, eclass
             else {
                 mat roweq `tmp' = "Total"
                 if `"`labels'"'!="" {
-                    local labels `"`labels' Total"'
+                    local labels `"`macval(labels)' Total"'
                 }
             }
         }
@@ -690,7 +708,7 @@ prog estpost_tabstat, eclass
             }
             matlist `res', nohalf `rowtotal' rowtitle(`by')
         }
-        if `"`labels'"'!="" {
+        if `"`macval(labels)'"'!="" {
             di _n as txt "category labels saved in macro e(labels)"
         }
         mat drop `res'
@@ -708,7 +726,7 @@ prog estpost_tabstat, eclass
     if "`esample'"!="" local esample esample(`touse')
     eret post `b' `V', obs(`N') `esample'
 
-    eret local labels `"`labels'"'
+    eret local labels `"`macval(labels)'"'
     eret local byvar "`by'"
     eret local vars "`vars'"
     eret local stats "`stats'"

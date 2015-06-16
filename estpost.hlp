@@ -204,7 +204,7 @@ in {cmd:e()}.
 
 {p 8 12 2}
         {cmd:elabels} to enforce saving the {cmd:by()} values/labels in macro 
-        {cmd:e(labels)}. The {cmd:by()} levels will be renumbered as 1, 2, etc.
+        {cmd:e(labels)}.
 
 {p 4 4 2}A vector of results is saved in {cmd:e()} for each specified
 variable or statistic, depending on {cmd:columns()}.
