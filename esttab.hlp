@@ -1,5 +1,5 @@
 {smcl}
-{* 29may2015}{...}
+{* 16jun2015}{...}
 {hi:help esttab}{right:also see: {helpb estout}, {helpb eststo}, {helpb estadd}, {helpb estpost}}
 {right: {browse "http://repec.org/bocode/e/estout"}}
 {hline}
@@ -442,7 +442,7 @@ floating object in LaTeX mode (unless the {cmd:nofloat} option
 is specified). You may want to set a label for
 referencing in this case. For example, if you type
 {cmd:title(...\label{tab1})}, then "\ref{tab1}" could be used in the
-LaTeX document to point to the table. Specify the 
+LaTeX document to point to the table.
 
 {p 4 8 2} 
 {cmd:mtitles}, without argument, specifies that for each model the title 

@@ -1,4 +1,4 @@
-*! version 1.1.6  06aug2010  Ben Jann
+*! version 1.1.7  16jun2015  Ben Jann
 * 1. estpost
 * 2. estpost_summarize
 * 3. estpost_tabulate
@@ -72,14 +72,14 @@ program _estpost_parse_svy
 end
 program _estpost_namesandlabels // used by some routines such as estpost_tabulate
     version 8.2                 // returns locals names, savenames, and labels
-    args varname values0 labels0
+    args varname values0 labels0 elabel
     if `"`values0'"'=="" { // generate values: 1 2 3 ...
         local i 0
         foreach label of local labels0 {
             local values0 `values0' `++i'
         }
     }
-    local haslabels 0
+    local haslabels = "`elabel'"!=""
     if `"`labels0'"'=="" & "`varname'"!="" {
         local vallab: value label `varname'
     }
@@ -94,24 +94,24 @@ program _estpost_namesandlabels // used by some routines such as estpost_tabulat
         }
         if index("`value'",".") {
             local haslabels 1
-            if `"`lbl'"'=="" {
+            if `"`macval(lbl)'"'=="" {
                 local lbl "`value'"
             }
             local value: subinstr local value "." "_missing_"
         }
         local names0 `names0' `value'
-        if `"`lbl'"'!="" {
-            local labels `"`labels'`lblspace'`value' `"`lbl'"'"'
+        if `"`macval(lbl)'"'!="" {
+            local labels `"`macval(labels)'`lblspace'`value' `"`macval(lbl)'"'"'
             local lblspace " "
         }
         if `haslabels' continue
-        if `"`lbl'"'=="" {
+        if `"`macval(lbl)'"'=="" {
             local names `"`names'`space'`value'"'
             local savenames `"`savenames'`space'`value'"'
         }
         else {
-            if regexm(`"`lbl'"', `"[:."]"') local haslabels 1
-            else if length(`"`lbl'"')>30    local haslabels 1
+            if regexm(`"`macval(lbl)'"', `"[:."]"') local haslabels 1
+            else if length(`"`macval(lbl)'"')>30    local haslabels 1
             else {
                 local names `"`names'`space'`"`lbl'"'"'
                 local lbl: subinstr local lbl " " "_", all
@@ -127,20 +127,20 @@ program _estpost_namesandlabels // used by some routines such as estpost_tabulat
     c_local names       `"`names'"'         // to be used as matrix row- or colnames
     c_local savenames   `"`savenames'"'     // names without spaces (for matlist)
     if `haslabels' {
-        c_local labels      `"`labels'"'    // label dictionary
+        c_local labels      `"`macval(labels)'"'    // label dictionary
     }
     else c_local labels ""
 end
 program _estpost_eqnamesandlabels // used by some routines such as estpost_tabulate
     version 8.2                   // returns locals eqnames and eqlabels
-    args varname values0 labels0
+    args varname values0 labels0 elabel
     if `"`values0'"'=="" { // generate values: 1 2 3 ...
         local i 0
         foreach label of local labels0 {
             local values0 `values0' `++i'
         }
     }
-    local haslabels 0
+    local haslabels = "`elabel'"!=""
     if `"`labels0'"'=="" & "`varname'"!="" {
         local vallab: value label `varname'
     }
@@ -155,22 +155,22 @@ program _estpost_eqnamesandlabels // used by some routines such as estpost_tabul
         }
         if index("`value'",".") {
             local haslabels 1
-            if `"`lbl'"'=="" {
+            if `"`macval(lbl)'"'=="" {
                 local lbl "`value'"
             }
             local value: subinstr local value "." "_missing_"
         }
         local names0 `names0' `value'
-        if `"`lbl'"'=="" local lbl "`value'"
-        local labels `"`labels'`lblspace'`"`lbl'"'"'
+        if `"`macval(lbl)'"'=="" local lbl "`value'"
+        local labels `"`macval(labels)'`lblspace'`"`macval(lbl)'"'"'
         local lblspace " "
         if `haslabels' continue
-        if `"`lbl'"'=="" {
+        if `"`macval(lbl)'"'=="" {
             local names `"`names'`space'`value'"'
         }
         else {
-            if regexm(`"`lbl'"', `"[:."]"') local haslabels 1
-            else if length(`"`lbl'"')>30    local haslabels 1
+            if regexm(`"`macval(lbl)'"', `"[:."]"') local haslabels 1
+            else if length(`"`macval(lbl)'"')>30    local haslabels 1
             else {
                 local names `"`names'`space'`"`lbl'"'"'
             }
@@ -182,7 +182,7 @@ program _estpost_eqnamesandlabels // used by some routines such as estpost_tabul
     }
     c_local eqnames       `"`names'"'         // to be used as matrix roweqs or coleqs
     if `haslabels' {
-        c_local eqlabels  `"`labels'"'        // list of labels
+        c_local eqlabels  `"`macval(labels)'"'        // list of labels
     }
     else c_local eqlabels ""
 end
@@ -303,7 +303,7 @@ prog estpost_tabulate_oneway, eclass
 
     // syntax
     syntax varname [if] [in] [fw aw iw] [, ESample Quietly ///
-        noTOTal subpop(passthru) Missing sort noLabel ]
+        noTOTal subpop(passthru) Missing sort noLabel ELabels ]
 
     // sample
     if "`missing'"!="" marksample touse, nov strok
@@ -332,10 +332,10 @@ prog estpost_tabulate_oneway, eclass
         local values `values' `value'
     }
     if "`label'"=="" {
-        _estpost_namesandlabels `varname' "`values'" // sets names, savenames, labels
+        _estpost_namesandlabels `varname' "`values'" "" "`elabels'" // sets names, savenames, labels
     }
     else {
-        _estpost_namesandlabels  "" "`values'"
+        _estpost_namesandlabels "" "`values'" "" "`elabels'"
     }
     if "`total'"=="" {
         mat `count' = `count', `N'
@@ -367,7 +367,7 @@ prog estpost_tabulate_oneway, eclass
             matlist `res', nohalf `linesopt' rowtitle(`varlist') nodotz
         }
         mat drop `res'
-        if `"`labels'"'!="" {
+        if `"`macval(labels)'"'!="" {
             di _n as txt "row labels saved in macro e(labels)"
         }
     }
@@ -383,7 +383,7 @@ prog estpost_tabulate_oneway, eclass
     eret scalar r = r(r)
     eret local wexp `"`exp'"'
     eret local wtype `"`weight'"'
-    eret local labels `"`labels'"'
+    eret local labels `"`macval(labels)'"'
     eret local depvar "`varlist'"
     eret local subcmd "tabulate"
     eret local cmd "estpost"
@@ -396,7 +396,7 @@ prog estpost_tabulate_twoway, eclass
 
     // syntax
     syntax varlist(min=2 max=2) [if] [in] [fw aw iw] [, ESample Quietly ///
-        noTOTal Missing noLabel ///
+        noTOTal Missing noLabel ELabels ///
         CHi2 Exact Exact2(passthru) Gamma LRchi2 Taub v All noLOg ]
     local v = upper("`v'")
     local qui2 "`quietly'"
@@ -444,12 +444,12 @@ prog estpost_tabulate_twoway, eclass
         }
     }
     if "`label'"=="" {
-        _estpost_namesandlabels `rvarname' "`rvalues'"   // sets names, savenames, labels
-        _estpost_eqnamesandlabels `cvarname' "`cvalues'" // sets eqnames, eqlabels
+        _estpost_namesandlabels `rvarname' "`rvalues'" "" "`elabels'" // sets names, savenames, labels
+        _estpost_eqnamesandlabels `cvarname' "`cvalues'" "" "`elabels'" // sets eqnames, eqlabels
     }
     else {
-        _estpost_namesandlabels "" "`rvalues'"   // sets names, savenames, labels
-        _estpost_eqnamesandlabels "" "`cvalues'" // sets eqnames, eqlabels
+        _estpost_namesandlabels "" "`rvalues'" "" "`elabels'" // sets names, savenames, labels
+        _estpost_eqnamesandlabels "" "`cvalues'" "" "`elabels'" // sets eqnames, eqlabels
     }
     local savenames0 `"`savenames'"'
     local savenames
@@ -492,12 +492,12 @@ prog estpost_tabulate_twoway, eclass
             matlist `res', twidth(12) format(%9.0g) noblank nohalf rowtitle(`rvar')
         }
         mat drop `res'
-        if `"`labels'`eqlabels'"'!="" {
+        if `"`macval(labels)'`macval(eqlabels)'"'!="" {
             di ""
-            if `"`labels'"'!="" {
+            if `"`macval(labels)'"'!="" {
                 di as txt "row labels saved in macro e(labels)"
             }
-            if `"`eqlabels'"'!="" {
+            if `"`macval(eqlabels)'"'!="" {
                 di as txt "column labels saved in macro e(eqlabels)"
             }
         }
@@ -518,8 +518,8 @@ prog estpost_tabulate_twoway, eclass
     }
     eret local wexp `"`exp'"'
     eret local wtype `"`weight'"'
-    eret local labels `"`labels'"'
-    eret local eqlabels `"`eqlabels'"'
+    eret local labels `"`macval(labels)'"'
+    eret local eqlabels `"`macval(eqlabels)16jun2015'"'
     eret local colvar "`cvar'"
     eret local rowvar "`rvar'"
     eret local subcmd "tabulate"
@@ -538,7 +538,7 @@ prog estpost_tabstat, eclass
     // syntax
     syntax varlist [if] [in] [aw fw] [, ESample Quietly ///
           Statistics(passthru) stats(passthru) LISTwise CASEwise ///
-          by(varname) noTotal Missing Columns(str) ]
+          by(varname) noTotal Missing Columns(str) ELabels ]
     if "`casewise'"!="" local listwise listwise
     local l = length(`"`columns'"')
     if `"`columns'"'==substr("variables",1,max(1,`l')) local columns "variables"
@@ -613,10 +613,10 @@ prog estpost_tabstat, eclass
         local labels `"`labels'`space'`"`r(name`i')'"'"'
     }
     if `R'==1 {
-        _estpost_namesandlabels "" "" `"`labels'"'   // sets names, savenames, labels
+        _estpost_namesandlabels "" "" `"`labels'"' "`elabels'" // sets names, savenames, labels
     }
     else {
-        _estpost_eqnamesandlabels "" "" `"`labels'"' // sets eqnames, eqlabels
+        _estpost_eqnamesandlabels "" "" `"`labels'"' "`elabels'" // sets eqnames, eqlabels
         local names `"`eqnames'"'
         local labels `"`eqlabels'"'
     }
@@ -952,7 +952,7 @@ prog estpost_stci, eclass
     // syntax
     syntax [if] [in] [ , ESample Quietly by(varname) ///
         Median Rmean Emean p(numlist >0 <100 integer max=1) ///
-        CCorr Level(real `c(level)') ]
+        CCorr Level(real `c(level)') ELabels ]
     local stat "p50"
     if `"`p'"'!="" {
         local stat `"p`p'"'
@@ -978,7 +978,7 @@ prog estpost_stci, eclass
         if _rc {
             local vallab: value label `by'
             if `"`vallab'"'!="" {
-                _estpost_namesandlabels `by' `"`levels'"'  // sets names, savenames, labels
+                _estpost_namesandlabels `by' `"`levels'"' "" "`elabels'" // sets names, savenames, labels
             }
             else {
                 local names `"`levels'"'
@@ -986,7 +986,7 @@ prog estpost_stci, eclass
             }
         }
         else {
-            _estpost_namesandlabels `by' "" `"`levels'"'  // sets names, savenames, labels
+            _estpost_namesandlabels `by' "" `"`levels'"' "`elabels'" // sets names, savenames, labels
         }
     }
     local levels `"`levels' "total""'
@@ -1278,7 +1278,7 @@ prog _svy_tabulate_oneway
     // syntax
     syntax varname [if] [in] [, ESample Quietly ///
         svyopts(str asis) MISSing Level(cilevel) ///
-        noTOTal noMARGinals noLabel PROPortion PERcent ///
+        noTOTal noMARGinals noLabel ELabels PROPortion PERcent ///
         CELl COUnt se ci deff deft * ]
     if "`marginals'"!=""   local total "nototal"
     else if "`total'"!=""  local marginals "nomarginals"
@@ -1302,14 +1302,14 @@ prog _svy_tabulate_oneway
     capt confirm string variable `varlist'
     if _rc {
         if "`label'"=="" {
-            _estpost_namesandlabels `varlist' "`levels'"   // sets names, savenames, labels
+            _estpost_namesandlabels `varlist' "`levels'" "" "`elabels'" // sets names, savenames, labels
         }
         else {
-            _estpost_namesandlabels "" "`levels'"   // sets names, savenames, labels
+            _estpost_namesandlabels "" "`levels'" "" "`elabels'" // sets names, savenames, labels
         }
     }
     else {
-        _estpost_namesandlabels "" "" `"`levels'"' // sets names, savenames, labels
+        _estpost_namesandlabels "" "" `"`levels'"' "`elabels'" // sets names, savenames, labels
     }
 
     // collect results
@@ -1442,7 +1442,7 @@ prog _svy_tabulate_twoway
     // syntax
     syntax varlist(min=1 max=2) [if] [in] [, ESample Quietly ///
         svyopts(str asis) MISSing Level(cilevel) ///
-        noTOTal noMARGinals noLabel PROPortion PERcent ///
+        noTOTal noMARGinals noLabel ELabels PROPortion PERcent ///
         CELl COUnt COLumn row se ci deff deft * ]
     if "`marginals'"!=""   local total "nototal"
     else if "`total'"!=""  local marginals "nomarginals"
@@ -1467,14 +1467,14 @@ prog _svy_tabulate_twoway
     capt confirm string variable `rvar'
     if _rc {
         if "`label'"=="" {
-            _estpost_namesandlabels `rvar' "`levels'"   // sets names, savenames, labels
+            _estpost_namesandlabels `rvar' "`levels'" "" "`elabels'" // sets names, savenames, labels
         }
         else {
-            _estpost_namesandlabels "" "`levels'"   // sets names, savenames, labels
+            _estpost_namesandlabels "" "`levels'" "" "`elabels'" // sets names, savenames, labels
         }
     }
     else {
-        _estpost_namesandlabels "" "" `"`levels'"' // sets names, savenames, labels
+        _estpost_namesandlabels "" "" `"`levels'"' "`elabels'" // sets names, savenames, labels
     }
     local cvar `"`e(colvar)'"'
     qui levelsof `cvar' if e(sample), `missing' local(levels)
@@ -1488,14 +1488,14 @@ prog _svy_tabulate_twoway
     capt confirm string variable `cvar'
     if _rc {
         if "`label'"=="" {
-            _estpost_eqnamesandlabels `cvar' "`levels'"   // sets eqnames, eqlabels
+            _estpost_eqnamesandlabels `cvar' "`levels'" "" "`elabels'" // sets eqnames, eqlabels
         }
         else {
-            _estpost_eqnamesandlabels "" "`levels'"    // sets eqnames, eqlabels
+            _estpost_eqnamesandlabels "" "`levels'" "" "`elabels'" // sets eqnames, eqlabels
         }
     }
     else {
-        _estpost_eqnamesandlabels "" "" `"`levels'"'  // sets eqnames, eqlabels
+        _estpost_eqnamesandlabels "" "" `"`levels'"' "`elabels'" // sets eqnames, eqlabels
     }
 
     // collect results

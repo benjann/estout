@@ -1,4 +1,4 @@
-*! version 2.3.3  28may2014  Ben Jann
+*! version 2.3.4  16jun2015  Ben Jann
 *  1. estadd and helpers
 *  2. estadd_local
 *  3. estadd_scalar
@@ -29,9 +29,9 @@
 program estadd
     version 8.2
     local caller : di _caller()
-    capt _on_colon_parse `0'
+    capt _on_colon_parse `macval(0)'
     if !_rc {
-        local 0 `"`s(before)'"'
+        local 0 `"`s(before)'"'                 // cannot apply macval() here
         local names `"`s(after)'"'
     }
     syntax anything(equalok id="subcommand") [if] [in] [fw aw iw pw] [, * ]
@@ -119,7 +119,8 @@ program estadd
                 }
             }
             backup_estimates_name
-            capt n break `qui' version `caller': estadd_`anything' `if' `in' `wgtexp' `options'
+            capt n break `qui' version `caller': ///
+                estadd_`macval(anything)' `if' `in' `wgtexp' `options'
             local rc = _rc
             restore_estimates_name
             if "`names'"!="." {
@@ -170,7 +171,7 @@ end
 
 program define added_macro
     args name
-    di as txt %25s `"e(`name') : "' `""{res:`e(`name')'}""'
+    di as txt %25s `"e(`name') : "' `""{res:`e(`name')'}""' // cannot apply macval() here
 end
 
 program define added_scalar
@@ -213,10 +214,10 @@ end
 * 2.
 * -estadd- subroutine: add local
 program estadd_loc
-    estadd_local `0'
+    estadd_local `macval(0)'
 end
 program estadd_loca
-    estadd_local `0'
+    estadd_local `macval(0)'
 end
 program estadd_local, eclass
     version 8.2
@@ -225,7 +226,7 @@ program estadd_local, eclass
     if "`replace'"=="" {
         confirm_new_ename `prefix'`name'
     }
-    ereturn local `prefix'`name'`def'
+    ereturn local `prefix'`name'`macval(def)'
     di _n as txt "added macro:"
     added_macro `prefix'`name'
 end
