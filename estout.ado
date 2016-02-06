@@ -1,4 +1,4 @@
-*! version 3.19  02jun2015  Ben Jann
+*! version 3.20  06feb2016  Ben Jann
 
 program define estout, rclass
     version 8.2
@@ -484,6 +484,14 @@ program define estout, rclass
             capt est_expand $eststo
             if !_rc {
                 local anything `"$eststo"'
+            }
+            if `'"`anything'"'!="" {
+                if `"`: e(scalars)'`: e(macros)'`: e(matrices)'`: e(functions)'"'!="" {
+                    if `: list posof `"`e(_estimates_name)'"' in anything'==0 {
+                        di as txt "(tabulating estimates stored by eststo;" ///
+                            `" specify "." to tabulate the active results)"'
+                    }
+                }
             }
         }
         if `"`anything'"'=="" local anything "."

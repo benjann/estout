@@ -1,4 +1,4 @@
-*! version 2.0.8  29may2015  Ben Jann
+*! version 2.0.9  06feb2016  Ben Jann
 *! wrapper for estout
 
 program define esttab
@@ -732,17 +732,28 @@ program define esttab
             if `"`labcol2'"'!="" local lstubtex "lc"
             else local lstubtex "l"
             if `"`width'"'!="" local extracolsep "@{\hskip\tabcolsep\extracolsep\fill}"
-            if `"`macval(alignment)'"'!="" {
-                local opening `"`macval(opening)' `"``mode'_open2'{`extracolsep'`lstubtex'*{@E}{`macval(alignment)'}}"'"'
-            }
-            else {
-                if `nocellsopt' {
-                    MakeTeXColspec "`wide'" "`not'" "`star'" "`stardetach'" "`staraux'"
+            if `matrixmode' {
+                if `"`macval(alignment)'"'!="" {
+                    local opening `"`macval(opening)' `"``mode'_open2'{`extracolsep'`lstubtex'`macval(alignment)'}"'"'
                 }
                 else {
-                    MakeTeXColspecAlt, `cells'
+                    MakeTeXColspecMat, `anything'
+                    local opening `"`macval(opening)' `"``mode'_open2'{`extracolsep'`lstubtex'`value'}"'"'
                 }
-                local opening `"`macval(opening)' `"``mode'_open2'{`extracolsep'`lstubtex'*{@E}{`value'}}"'"'
+            }
+            else {
+                if `"`macval(alignment)'"'!="" {
+                    local opening `"`macval(opening)' `"``mode'_open2'{`extracolsep'`lstubtex'*{@E}{`macval(alignment)'}}"'"'
+                }
+                else {
+                    if `nocellsopt' {
+                        MakeTeXColspec "`wide'" "`not'" "`star'" "`stardetach'" "`staraux'"
+                    }
+                    else {
+                        MakeTeXColspecAlt, `cells'
+                    }
+                    local opening `"`macval(opening)' `"``mode'_open2'{`extracolsep'`lstubtex'*{@E}{`value'}}"'"'
+                }
             }
             if "`longtable'"!="" {
                 if `"`macval(title)'"'!="" {
@@ -1083,7 +1094,7 @@ program _estout_options
 end
 
 program MatrixMode
-    capt syntax [, Matrix(str asis) e(str asis) r(str asis) rename(str asis) ]
+    capt syntax [, Matrix(str asis) e(str asis) r(str asis) ]
     if _rc | `"`matrix'`e'`r'"'=="" {
         c_local matrixmode 0
         exit
@@ -1164,6 +1175,25 @@ prog CheckScalarOpt
     if _rc error 198
 end
 
+program MakeTeXColspecMat
+    capt syntax [, Matrix(str asis) e(str asis) r(str asis) ]
+    ParseMatrixOpt `matrix'`e'`r'
+    if `"`e'"'!=""      local name "e(`name')"
+    else if `"`r'"'!="" local name "r(`name')"
+    confirm matrix `name'
+    tempname bc
+    mat `bc' = `name'
+    if "`transpose'"=="" local cols = colsof(`bc')
+    else                 local cols = rowsof(`bc')
+    c_local value "*{`cols'}{c}"
+end
+program ParseMatrixOpt
+    syntax name [, Fmt(str asis) Transpose ]
+    c_local name `"`namelist'"'
+    c_local fmt `"`fmt'"'
+    c_local transpose `"`transpose'"'
+end
+
 prog MakeTeXColspec
     args wide not star detach aux
     if "`star'"!="" & "`detach'"!="" & "`aux'"=="" local value "r@{}l"
@@ -1179,11 +1209,27 @@ prog MakeTeXColspecAlt
     syntax, cells(string asis)
     local count 1
     while `count' {
+        local cells: subinstr local cells ") (" ")_(", all // preserve space in ") (" 
+        local cells: subinstr local cells "] (" "]_(", all // preserve space in ") [" 
         local cells: subinstr local cells " (" "(", all count(local count)
+    }
+    local cells: subinstr local cells ")_(" ") (", all // restore space in ") (" 
+    local cells: subinstr local cells "]_(" "] (", all // restore space in ") [" 
+    local count 1
+    while `count' {
+        local cells: subinstr local cells " [" "[", all count(local count)
+    }
+    local count 1
+    while `count' {
+        local cells: subinstr local cells " &" "&", all count(local count)
+    }
+    local count 1
+    while `count' {
+        local cells: subinstr local cells "& " "&", all count(local count)
     }
     local count 1
     while `"`macval(cells)'"'!="" {
-        gettoken row cells : cells, bind
+        gettoken row cells : cells, match(par)
         local size 0
         gettoken chunk row : row, bind
         while `"`macval(chunk)'"'!="" {

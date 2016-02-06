@@ -1,4 +1,4 @@
-*! version 2.3.4  16jun2015  Ben Jann
+*! version 2.3.5  05feb2016  Ben Jann
 *  1. estadd and helpers
 *  2. estadd_local
 *  3. estadd_scalar
@@ -143,8 +143,9 @@ program define backup_estimates_name, eclass
     ereturn local _estimates_name ""
 end
 program define restore_estimates_name, eclass
-    ereturn local _estimates_name `"`e(_estadd_estimates_name)'"'
+    local hold `"`e(_estadd_estimates_name)'"'
     ereturn local _estadd_estimates_name ""
+    ereturn local _estimates_name `"`hold'"'
 end
 
 program confirm_new_ename
