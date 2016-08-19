@@ -1,4 +1,4 @@
-*! version 3.20  06feb2016  Ben Jann
+*! version 3.21  19aug2016  Ben Jann
 
 program define estout, rclass
     version 8.2
@@ -355,7 +355,7 @@ program define estout, rclass
     CellsCheck `"`cells'"'
     if `:list sizeof incelldelimiter'==1 gettoken incelldelimiter: incelldelimiter
 
-*Special treatment of confidence intervalls
+*Special treatment of confidence intervals
     if "`level'"=="" local level $S_level
     if `level'<10 | `level'>99 {
         di as error "level(`level') invalid"
@@ -820,7 +820,7 @@ program define estout, rclass
                         if "`vi'"=="." continue
                         local colhasstats 1
                         if "`unstack'"!="" {
-                            if `:list eq in `vi'_eqdrop' continue
+                            if `:list posof `"`eq'"' in `vi'_eqdrop' continue
                         }
                         if "`:word `m' of ``vi'_pattern''"=="0" {
                             local v: subinstr local v "`vi'" ".`vi'", word
@@ -1055,7 +1055,7 @@ program define estout, rclass
             `"`macval(mgroups)'"' "`starsrow'" "`mgroupsspan'" "`abbrev'" ///
             "`modelwidth'" "`delwidth'" "`starwidth'" ///
             `"`macval(mgroupserepeat)'"' `"`macval(mgroupsprefix)'"' ///
-            `"`macval(mgroupssuffix)'"'
+            `"`macval(mgroupssuffix)'"' "`haslabcol2'"
         WriteEnd `"`file'"' `"`macval(tmpend)'"' `"`macval(mgroupsend)'"' ///
          `"`"`macval(value)'"'"'
         if `hasrtfbrdr' & `rtfbrdron' {
@@ -1084,7 +1084,7 @@ program define estout, rclass
             `"`macval(stardetach)'"' "`modelsrow'" "`modelsrow'"  ///
             "`r(numlist)'" "`starsrow'" "`mlabelsspan'" "`abbrev'"  ///
             "`modelwidth'" "`delwidth'" "`starwidth'" ///
-            `""' `"`macval(1)'"' `"`macval(2)'"'
+            `""' `"`macval(1)'"' `"`macval(2)'"' "`haslabcol2'"
         file write `file' `macval(end)' _n
         if `hasrtfbrdr' & `rtfbrdron' {
             StableSubinstr begin `"`macval(rtfbeginbak)'"' "@rtfrowdefbrdr" `"`rtfrowdef'"'
@@ -1124,7 +1124,7 @@ program define estout, rclass
             `"`macval(mlabels)'"' "`starsrow'" "`mlabelsspan'" "`abbrev'"  ///
             "`modelwidth'" "`delwidth'" "`starwidth'" ///
             `"`macval(mlabelserepeat)'"' `"`macval(mlabelsprefix)'"' ///
-            `"`macval(mlabelssuffix)'"'
+            `"`macval(mlabelssuffix)'"' "`haslabcol2'"
         WriteEnd `"`file'"' `"`macval(tmpend)'"' `"`macval(mlabelsend)'"' ///
          `"`"`macval(value)'"'"'
         if `hasrtfbrdr' & `rtfbrdron' {
@@ -1166,7 +1166,7 @@ program define estout, rclass
             `"`macval(eqlabels)'"' "`starsrow'" "`eqlabelsspan'"  "`abbrev'" ///
             "`modelwidth'" "`delwidth'" "`starwidth'" ///
             `"`macval(eqlabelserepeat)'"' `"`macval(eqlabelsprefix)'"' ///
-            `"`macval(eqlabelssuffix)'"'
+            `"`macval(eqlabelssuffix)'"' "`haslabcol2'"
         WriteEnd `"`file'"' `"`macval(tmpend)'"' `"`macval(eqlabelsend)'"' ///
          `"`"`macval(value)'"'"'
         if `hasrtfbrdr' & `rtfbrdron' {
@@ -1205,7 +1205,7 @@ program define estout, rclass
             `"`macval(stardetach)'"' "`colsrow'" "" `"`macval(collabels)'"' ///
             "`starsrow'" "`collabelsspan'" "`abbrev'" "`modelwidth'" ///
             "`delwidth'" "`starwidth'" `"`macval(collabelserepeat)'"' ///
-            `"`macval(collabelsprefix)'"' `"`macval(collabelssuffix)'"'
+            `"`macval(collabelsprefix)'"' `"`macval(collabelssuffix)'"' "`haslabcol2'"
         WriteEnd `"`file'"' `"`macval(tmpend)'"' `"`macval(collabelsend)'"' ///
          `"`"`macval(value)'"'"'
         if `hasrtfbrdr' & `rtfbrdron' {
@@ -1331,7 +1331,7 @@ program define estout, rclass
                         if rownumb(`B',`"`eqvar'"')<. {
                             local rowhasstats 1
                             if index("`vi'",".")==1 continue
-                            if `: list eqvar in `vi'_drop' continue
+                            if `:list posof `"`eqvar'"' in `vi'_drop' continue
                             local skiprow 0
                             continue, break
                         }
@@ -1527,7 +1527,7 @@ program define estout, rclass
                     local thevalue
                     foreach vi of local v {
                         if index("`vi'",".")!=1 {
-                            if `: list eqvar in `vi'_drop' local vi "..`vi'"
+                            if `: list posof `"`eqvar'"' in `vi'_drop' local vi "..`vi'"
                             else {
                                 local vipar: subinstr local `vi'_par "@modelwidth" "`modelwidthj'", all
                             }
@@ -1590,7 +1590,7 @@ program define estout, rclass
                             if `modelwidthj'>0 | `starwidth'>0 local fmt_m "%`=`modelwidthj'+`starwidth''s"
                             local value
                             if index("`vi'",".")!=1 & `"``vi'_star'"'!="" {
-                                if !`: list eqvar in stardrop' {
+                                if !`: list posof `"`eqvar'"' in stardrop' {
                                     Stars `"`macval(starlevels)'"' `_```vi'_pvalue'_tname''[`rr',`m']
                                 }
                             }
@@ -1611,10 +1611,10 @@ program define estout, rclass
                         local thevalue
                         foreach vi of local v {
                             if index("`vi'",".")!=1 {
-                                if `: list eqvar in `vi'_drop' local vi "..`vi'"
+                                if `: list posof `"`eqvar'"' in `vi'_drop' local vi "..`vi'"
                             }
                             if index("`vi'",".")!=1 & `"``vi'_star'"'!="" {
-                                if `: list eqvar in stardrop' local value
+                                if `: list posof `"`eqvar'"' in stardrop' local value
                                 else {
                                     Stars `"`macval(starlevels)'"' `_```vi'_pvalue'_tname''[`rr',`m']
                                 }
@@ -3505,10 +3505,10 @@ end
 
 program WriteCaption
     args file delimiter stardetach row rowtwo labels starsrow span  ///
-     abbrev colwidth delwidth starwidth repeat prefix suffix
+     abbrev colwidth delwidth starwidth repeat prefix suffix haslabcol2
     local c 0
     local nspan 0
-    local c0 2
+    local c0 = 2 + `haslabcol2'
     local spanwidth -`delwidth'
     local spanfmt
     local ncolwidth: list sizeof colwidth
