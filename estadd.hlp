@@ -915,7 +915,7 @@ current directory or somewhere else in the {cmd:adopath}
 {p 4 4 2}
 Use the subcommands provided within "estadd.ado" as a starting
 point for writing new subcommands. See
-{browse "http://repec.org/bocode/e/estout/estadd.html#007"}
+{browse "http://repec.sowi.unibe.ch/stata/estout/estadd.html#007"}
 for an example.
 
 
