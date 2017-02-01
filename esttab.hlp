@@ -1,7 +1,7 @@
 {smcl}
-{* 16jun2015}{...}
+{* 01feb2017}{...}
 {hi:help esttab}{right:also see: {helpb estout}, {helpb eststo}, {helpb estadd}, {helpb estpost}}
-{right: {browse "http://repec.org/bocode/e/estout"}}
+{right: {browse "http://repec.sowi.unibe.ch/stata/estout/"}}
 {hline}
 
 {title:Title}
@@ -781,7 +781,7 @@ exponential format.
 {p 4 4 2}
 The following examples are intended to illustrate the basic usage of
 {cmd:esttab}.  Additional examples can be found at
-{browse "http://repec.org/bocode/e/estout"}. 
+{browse "http://repec.sowi.unibe.ch/stata/estout/"}. 
 
 {p 4 4 2} The procedure is to first fit and store some models (see {helpb eststo}) and then apply 
 {cmd:esttab} to these stored estimates:

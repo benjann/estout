@@ -1,7 +1,7 @@
 {smcl}
-{* 20mar2015}{...}
+{* 01feb2017}{...}
 {hi:help estadd}{right:also see: {helpb esttab}, {helpb estout}, {helpb eststo}, {helpb estpost}}
-{right: {browse "http://repec.org/bocode/e/estout"}}
+{right: {browse "http://repec.sowi.unibe.ch/stata/estout/"}}
 {hline}
 
 {title:Title}
@@ -64,7 +64,7 @@ descriptives of the dependent variable
       {helpb estadd##margins:margins}{col 26}{...}
 add results from {cmd:margins} (Stata 11 or newer)
 
-    {help estadd##spost:SPost}
+    {help estadd##spost:SPost9}
       {helpb estadd##brant:brant}{col 26}{...}
 add results from {cmd:brant} (if installed)
       {helpb estadd##fitstat:fitstat}{col 26}{...}
@@ -375,20 +375,20 @@ standard errors are added in {cmd:e(margins_se)}. Use the {helpb estadd##opts:pr
 option to change the default prefix.
 
 {marker spost}
-{dlgtab:SPost}
+{dlgtab:SPost9}
 
 {p 4 4 2} The following subcommands are wrappers for
-commands from Long and Freese's {helpb SPost} package (see
-{browse "http://www.indiana.edu/~jslsoc/spost.htm":http://www.indiana.edu/~jslsoc/spost.htm}). Type
+commands from Long and Freese's {helpb SPost9} package (see
+{browse "http://www.indiana.edu/~jslsoc/spost9.htm"}). Type
 
         . {net "from http://www.indiana.edu/~jslsoc/stata":net from http://www.indiana.edu/~jslsoc/stata}
 
 {p 4 4 2}
-to obtain the latest {cmd:SPost} version (spost9_ado). {cmd:SPost} for Stata 8 (spostado) is not
+to obtain the {cmd:SPost9} package (spost9_ado). {cmd:SPost} for Stata 8 (spostado) is not
 supported.
 
 {p 4 4 2}For examples on using the subcommands see
-{browse "http://repec.org/bocode/e/estout/spost.html":http://repec.org/bocode/e/estout/spost.html}.
+{browse "http://repec.sowi.unibe.ch/stata/estout/spost.html"}.
 
 {marker brant}
 {p 4 8 2}
@@ -897,7 +897,7 @@ Example 3: Add standardized beta coefficients to stored estimates
 
 
 {p 4 4 2}See
-{browse "http://repec.org/bocode/e/estout":http://repec.org/bocode/e/estout}
+{browse "http://repec.sowi.unibe.ch/stata/estout/"}
 for additional examples.
 
 
@@ -915,7 +915,7 @@ current directory or somewhere else in the {cmd:adopath}
 {p 4 4 2}
 Use the subcommands provided within "estadd.ado" as a starting
 point for writing new subcommands. See
-{browse "http://repec.org/bocode/e/estout/estadd.html#estadd007":http://repec.org/bocode/e/estout/estadd.html#estadd007}
+{browse "http://repec.org/bocode/e/estout/estadd.html#007"}
 for an example.
 
 

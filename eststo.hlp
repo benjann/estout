@@ -1,7 +1,7 @@
 {smcl}
-{* 13sep2013}{...}
+{* 01feb2017}{...}
 {hi:help eststo}{right:also see: {helpb esttab}, {helpb estout}, {helpb estadd}, {helpb estpost}}
-{right: {browse "http://repec.org/bocode/e/estout"}}
+{right: {browse "http://repec.sowi.unibe.ch/stata/estout/"}}
 {hline}
 
 {title:Title}

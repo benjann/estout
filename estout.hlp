@@ -1,7 +1,7 @@
 {smcl}
-{* 02jun2014}{...}
+{* 01feb2017}{...}
 {cmd:help estout}{right:also see: {helpb esttab}, {helpb eststo}, {helpb estadd}, {helpb estpost}}
-{right: {browse "http://repec.org/bocode/e/estout"}}
+{right: {browse "http://repec.sowi.unibe.ch/stata/estout/"}}
 {hline}
 
 {title:Title}
@@ -824,9 +824,9 @@ label the table's left stub
     the {cmd:post} option is specified with {helpb margins}. Alternatively, 
     you may add results from {helpb margins} to an existing 
     model using {helpb estadd:estadd margins} or 
-    {helpb estpost:estpost margins}. See the examples on tabulating results
-    from {helpb margins} at 
-    {browse "http://repec.org/bocode/e/estout/advanced.html"}.
+    {helpb estpost:estpost margins}. See 
+    {browse "http://repec.sowi.unibe.ch/stata/estout/coefficients.html#002"} for
+    an example on tabulating results from {helpb margins}.
     {p_end}
 {marker discrete}
 {p 4 8 2}
@@ -1649,7 +1649,7 @@ The following suboptions may be applied within the {cmd:matrix()},
 other examples are more advanced and intended for users
 already familiar with the basic features of
 {cmd:estout}. Additional examples can be found in Jann (2005) and at
-{browse "http://repec.org/bocode/e/estout"}.
+{browse "http://repec.sowi.unibe.ch/stata/estout/"}.
 
 {marker intro}
 {dlgtab:Introduction}
