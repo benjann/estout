@@ -58,8 +58,17 @@ program define estout, rclass
     if "`style'"!="" local defaults "`style'"
 
 *Matrix mode
+tempname B
     MatrixMode, `anything' `rename' // resets the cells argument
         // and returns r(coefs) etc. and local 'matrixmode'
+	if (`matrixmode'==1) {
+		local models `r(names)'
+		local nmodels = r(nmodels)
+		local ccols = r(ccols)
+		if `ccols'>0 {
+		mat `B'  = r(coefs)
+	}
+}
 
 *Parse suboptions
     local elnum 0
@@ -477,7 +486,7 @@ program define estout, rclass
         local temp = ("``v'_transpose'"!="")
         local values1mrow `"`values1mrow' `"``v'_' `temp' ``v'_mrow'"'"'
     }
-    tempname B D St
+    tempname D St
     if `matrixmode'==0 {
 *   - expand model names
         if `"`anything'"'=="" {
@@ -525,9 +534,13 @@ program define estout, rclass
             }
         }
         mat `St' = r(stats)
+	local nmodels = r(nmodels)
+	local ccols = r(ccols)
+	if `ccols'>0 {
+		mat `B'  = r(coefs)
+	}
     }
     else { // matrix mode
-        local models `r(names)'
         // define `St' so that code does not break
         if `"`stats'"'!="" {
             mat `St' = J(`:list sizeof stats',1,.z)
@@ -535,11 +548,7 @@ program define estout, rclass
             mat rown `St' = `stats'
         }
     }
-    local nmodels = r(nmodels)
-    local ccols = r(ccols)
-    if `ccols'>0 {
-        mat `B'  = r(coefs)
-    }
+
     return add
 *   - process order() option
     if `"`order'"' != "" {
