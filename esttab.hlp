@@ -1,5 +1,5 @@
 {smcl}
-{* 01feb2017}{...}
+{* 15feb2017}{...}
 {hi:help esttab}{right:also see: {helpb estout}, {helpb eststo}, {helpb estadd}, {helpb estpost}}
 {right: {browse "http://repec.sowi.unibe.ch/stata/estout/"}}
 {hline}
@@ -145,7 +145,7 @@ overwrite an existing file
       {cmdab:a:ppend}{col 26}{...}
 append the output to an existing file
       {cmdab:ty:pe}{col 26}{...}
-force prining the table in the results window
+force printing the table in the results window
       {cmdab:n:oisily}{col 26}{...}
 display the executed {helpb estout} command
 

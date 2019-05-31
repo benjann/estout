@@ -1,4 +1,4 @@
-*! version 1.1.8  16jun2015  Ben Jann
+*! version 1.1.9  01mar2019  Ben Jann
 * 1. estpost
 * 2. estpost_summarize
 * 3. estpost_tabulate
@@ -1335,6 +1335,7 @@ prog _svy_tabulate_oneway
     local N_pop = cond(e(N_subpop)<., e(N_subpop), e(N_pop))
     local N_obs = cond(e(N_sub)<., e(N_sub), e(N))
     local tval = invttail(e(df_r), (100-`level')/200)
+    if `tval'>=. local tval = invnormal(1 - (100-`level')/200)
     mat `cell'  = e(Prop)'
     mat `count' = `cell' * `N_pop'
     capture confirm matrix e(ObsSub)
@@ -1521,6 +1522,7 @@ prog _svy_tabulate_twoway
     local N_pop = cond(e(N_subpop)<., e(N_subpop), e(N_pop))
     local N_obs = cond(e(N_sub)<., e(N_sub), e(N))
     local tval = invttail(e(df_r), (100-`level')/200)
+    if `tval'>=. local tval = invnormal(1 - (100-`level')/200)
     mat `cell' = e(Prop)    // r x c matrix
     mat `cell' = (`cell', `cell' * J(`C',1,1)) \ (J(1,`R',1) * `cell', 1)
     mat `count' = `cell' * `N_pop'

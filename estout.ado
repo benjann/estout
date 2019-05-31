@@ -1,4 +1,4 @@
-*! version 3.21  19aug2016  Ben Jann
+*! version 3.23  31may2019  Ben Jann
 
 program define estout, rclass
     version 8.2
@@ -58,8 +58,17 @@ program define estout, rclass
     if "`style'"!="" local defaults "`style'"
 
 *Matrix mode
+    tempname B
     MatrixMode, `anything' `rename' // resets the cells argument
         // and returns r(coefs) etc. and local 'matrixmode'
+    if (`matrixmode'==1) {
+        local models `r(names)'
+        local nmodels = r(nmodels)
+        local ccols = r(ccols)
+        if `ccols'>0 {
+            mat `B'  = r(coefs)
+        }
+    }
 
 *Parse suboptions
     local elnum 0
@@ -477,7 +486,7 @@ program define estout, rclass
         local temp = ("``v'_transpose'"!="")
         local values1mrow `"`values1mrow' `"``v'_' `temp' ``v'_mrow'"'"'
     }
-    tempname B D St
+    tempname D St
     if `matrixmode'==0 {
 *   - expand model names
         if `"`anything'"'=="" {
@@ -487,7 +496,8 @@ program define estout, rclass
             }
             if `'"`anything'"'!="" {
                 if `"`: e(scalars)'`: e(macros)'`: e(matrices)'`: e(functions)'"'!="" {
-                    if `: list posof `"`e(_estimates_name)'"' in anything'==0 {
+                    local inlist: list posof `"`e(_estimates_name)'"' in anything
+                    if `inlist'==0 {
                         di as txt "(tabulating estimates stored by eststo;" ///
                             `" specify "." to tabulate the active results)"'
                     }
@@ -525,20 +535,19 @@ program define estout, rclass
             }
         }
         mat `St' = r(stats)
+        local nmodels = r(nmodels)
+        local ccols = r(ccols)
+        if `ccols'>0 {
+            mat `B'  = r(coefs)
+        }
     }
     else { // matrix mode
-        local models `r(names)'
         // define `St' so that code does not break
         if `"`stats'"'!="" {
             mat `St' = J(`:list sizeof stats',1,.z)
             mat coln `St' = `models'
             mat rown `St' = `stats'
         }
-    }
-    local nmodels = r(nmodels)
-    local ccols = r(ccols)
-    if `ccols'>0 {
-        mat `B'  = r(coefs)
     }
     return add
 *   - process order() option
@@ -551,7 +560,7 @@ program define estout, rclass
     local nindicate 0
     foreach indi of local indicate {
         local ++nindicate
-        ProcessIndicateGrp `nindicate' `B' `nmodels' "`unstack'" ///
+        ProcessIndicateGrp `nindicate' `B' `nmodels' `ccols' "`unstack'" ///
         `"`macval(indicatelabels)'"' `"`macval(indi)'"'
     }
 *   - process keep() option
@@ -820,7 +829,8 @@ program define estout, rclass
                         if "`vi'"=="." continue
                         local colhasstats 1
                         if "`unstack'"!="" {
-                            if `:list posof `"`eq'"' in `vi'_eqdrop' continue
+                            local inlist: list posof `"`eq'"' in `vi'_eqdrop
+                            if `inlist' continue
                         }
                         if "`:word `m' of ``vi'_pattern''"=="0" {
                             local v: subinstr local v "`vi'" ".`vi'", word
@@ -1331,7 +1341,8 @@ program define estout, rclass
                         if rownumb(`B',`"`eqvar'"')<. {
                             local rowhasstats 1
                             if index("`vi'",".")==1 continue
-                            if `:list posof `"`eqvar'"' in `vi'_drop' continue
+                            local inlist: list posof `"`eqvar'"' in `vi'_drop
+                            if `inlist' continue
                             local skiprow 0
                             continue, break
                         }
@@ -1347,7 +1358,7 @@ program define estout, rclass
 
 *Insert refcat() (unless refcatbelow)
             if `"`macval(refcat)'"'!="" {
-                local isref: list posof "`var'" in refcatcoefs
+                local isref: list posof `"`var'"' in refcatcoefs
                 if `isref' {
                     if "`unstack'"=="" {
                         local temp `"`eqr'"'
@@ -1527,7 +1538,8 @@ program define estout, rclass
                     local thevalue
                     foreach vi of local v {
                         if index("`vi'",".")!=1 {
-                            if `: list posof `"`eqvar'"' in `vi'_drop' local vi "..`vi'"
+                            local inlist: list posof `"`eqvar'"' in `vi'_drop
+                            if `inlist' local vi "..`vi'"
                             else {
                                 local vipar: subinstr local `vi'_par "@modelwidth" "`modelwidthj'", all
                             }
@@ -1590,7 +1602,8 @@ program define estout, rclass
                             if `modelwidthj'>0 | `starwidth'>0 local fmt_m "%`=`modelwidthj'+`starwidth''s"
                             local value
                             if index("`vi'",".")!=1 & `"``vi'_star'"'!="" {
-                                if !`: list posof `"`eqvar'"' in stardrop' {
+                                local inlist: list posof `"`eqvar'"' in stardrop
+                                if !`inlist' {
                                     Stars `"`macval(starlevels)'"' `_```vi'_pvalue'_tname''[`rr',`m']
                                 }
                             }
@@ -1611,10 +1624,12 @@ program define estout, rclass
                         local thevalue
                         foreach vi of local v {
                             if index("`vi'",".")!=1 {
-                                if `: list posof `"`eqvar'"' in `vi'_drop' local vi "..`vi'"
+                                local inlist: list posof `"`eqvar'"' in `vi'_drop
+                                if `inlist' local vi "..`vi'"
                             }
                             if index("`vi'",".")!=1 & `"``vi'_star'"'!="" {
-                                if `: list posof `"`eqvar'"' in stardrop' local value
+                                local inlist: list posof `"`eqvar'"' in stardrop
+                                if `inlist' local value
                                 else {
                                     Stars `"`macval(starlevels)'"' `_```vi'_pvalue'_tname''[`rr',`m']
                                 }
@@ -3149,6 +3164,8 @@ program ComputeCoefs_p
             matrix `dfmi' = e(df_mi)
         }
     }
+    if c(stata_version)<10 local dfmax 1e12
+    else                   local dfmax 2e17
     forv i = 1/`r' {
             local b   `bc'[`i',1]
             local var `bc'[`i',2]
@@ -3156,15 +3173,15 @@ program ComputeCoefs_p
             if `b'>=.        mat `res' = `b'
             else if `var'>=. mat `res' = `var'
             else if "`dfmi'"!="" {
-                if `dfmi'[1,`i']<. {
+                if `dfmi'[1,`i']<=`dfmax' {
                     mat `res' = ttail(`dfmi'[1,`i'],abs(`b'/sqrt(`var'))) * 2
                 }
                 else {
                     mat `res' = (1 - norm(abs(`b'/sqrt(`var')))) * 2
                 }
             }
-            else if `df_r'<. mat `res' = ttail(`df_r',abs(`b'/sqrt(`var'))) * 2
-            else             mat `res' = (1 - norm(abs(`b'/sqrt(`var')))) * 2
+            else if `df_r'<=`dfmax' mat `res' = ttail(`df_r',abs(`b'/sqrt(`var'))) * 2
+            else                    mat `res' = (1 - norm(abs(`b'/sqrt(`var')))) * 2
     }
 end
 
@@ -3189,6 +3206,8 @@ program ComputeCoefs_ci
             matrix `dfmi' = e(df_mi)
         }
     }
+    if c(stata_version)<10 local dfmax 1e12
+    else                   local dfmax 2e17
     forv i = 1/`r' {
             local b   `bc'[`i',1]
             local var `bc'[`i',2]
@@ -3196,7 +3215,7 @@ program ComputeCoefs_ci
             if `b'>=.        mat `res' = `b'
             else if `var'>=. mat `res' = `var'
             else if "`dfmi'"!="" {
-                if `dfmi'[1,`i']<. {
+                if `dfmi'[1,`i']<=`dfmax' {
                     mat `res' = `b' `sign' ///
                         invttail(`dfmi'[1,`i'],(100-`level')/200) * sqrt(`var')
                 }
@@ -3205,10 +3224,9 @@ program ComputeCoefs_ci
                         invnorm(1-(100-`level')/200) * sqrt(`var')
                 }
             }
-            else if `df_r'<. mat `res' = `b' `sign' ///
-                                invttail(`df_r',(100-`level')/200) * sqrt(`var')
-            else             mat `res' = `b' `sign' ///
-                                invnorm(1-(100-`level')/200) * sqrt(`var')
+            else if `df_r'<=`dfmax' ///
+                 mat `res' = `b' `sign' invttail(`df_r',(100-`level')/200) * sqrt(`var')
+            else mat `res' = `b' `sign' invnorm(1-(100-`level')/200) * sqrt(`var')
     }
 end
 
@@ -4060,7 +4078,7 @@ prog ParseIndicateOpts
 end
 
 prog ProcessIndicateGrp
-    args i B nmodels unstack yesno indicate
+    args i B nmodels ccols unstack yesno indicate
     gettoken yes no : yesno
     gettoken no : no
     gettoken tok rest : indicate, parse(=)
@@ -4082,7 +4100,7 @@ prog ProcessIndicateGrp
     }
     ExpandEqVarlist `"`vars'"' `B'
     local evars `"`value'"'
-    IsInModels `B' `nmodels' "`unstack'" `"`macval(yes)'"' `"`macval(no)'"' `"`evars'"'
+    IsInModels `B' `nmodels' `ccols' "`unstack'" `"`macval(yes)'"' `"`macval(no)'"' `"`evars'"'
     local lbls `"`macval(value)'"'
     DropOrKeep 0 `B' `"`evars'"'
     c_local indicate`i'name `"`macval(name)'"'
@@ -4091,7 +4109,7 @@ prog ProcessIndicateGrp
 end
 
 prog IsInModels
-    args B nmodels unstack yes no vars
+    args B nmodels ccols unstack yes no vars
     capt confirm matrix `B'
     if _rc {
         forv i = 1/`nmodels' {
@@ -4103,14 +4121,12 @@ prog IsInModels
         }
         exit
     }
-    local models: coleq `B', q
-    local models: list uniq models
     local eqs: roweq `B', q
     local eqs: list uniq eqs
     tempname Bt Btt Bttt
-    foreach model of local models {
+    forv j = 1/`nmodels' {
         local stop 0
-        mat `Bt' = `B'[1...,"`model':"]
+        mat `Bt' = `B'[1..., (`j'-1)*`ccols' + 1]
         foreach eq of local eqs {
             mat `Btt' = `Bt'[`"`eq':"',1]
             if `"`unstack'"'!="" local stop 0
