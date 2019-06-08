@@ -9,6 +9,7 @@
 * 8. estpost_ci
 * 9. estpost_prtest
 * 10. estpost__svy_tabulate
+* 12. estpost_gtabstat
 * 99. _erepost
 
 * 1. estpost
@@ -1741,6 +1742,247 @@ prog estpost_margins, eclass
         mat `tmp' = r(`r')
         eret matrix `r' = `tmp'
     }
+end
+
+* 12. estpost_gtabstat: wrapper for -gstats tabstat- (gtools required)
+prog estpost_gtabstat, eclass
+    version 13.1
+    local caller : di _caller() // not used
+
+    cap gtools
+    if ( _rc ) {
+        disp as err "gtools required for estpost gtabstat"
+        exit 111
+    }
+
+    // syntax
+    syntax varlist [if] [in] [aw fw] [, ESample Quietly ///
+          Statistics(passthru) stats(passthru) ///
+          by(varname) Missing Columns(str) ELabels ]
+    local l = length(`"`columns'"')
+    if `"`columns'"'==substr("variables",1,max(1,`l')) local columns "variables"
+    else if `"`columns'"'==substr("statistics",1,max(1,`l')) local columns "statistics"
+    else if `"`columns'"'=="stats" local columns "statistics"
+    else if `"`columns'"'=="" {
+        if `:list sizeof varlist'>1 local columns "variables"
+        else local columns "statistics"
+    }
+    else {
+        di as err `"columns(`columns') invalid"'
+        exit 198
+    }
+
+    // sample
+    if "`listwise'"!="" marksample touse
+    else {
+        marksample touse, nov
+        _estpost_markout2 `touse' `varlist'
+    }
+    if "`by'"!="" {
+        capt confirm string variable `by'
+        local numby = (_rc!=0)
+
+        // NOTE(mauricio): Not sure what this does. I think it's just
+        // a copy of the by variable so that _estpost_eqnamesandlabels
+        // parses the numeric input back into value labels?
+        //
+        // if `numby' {
+        //     tempname tmpby
+        //     qui gen `:type `by'' `tmpby' = `by'
+        // }
+        // else local tmpby `by'
+        // local byopt "by(`tmpby')"
+
+        if "`missing'"=="" markout `touse' `by', strok
+        local byopt by(`by')
+    }
+    else local numby 0
+    qui count if `touse'
+    local N = r(N)
+    if `N'==0 error 2000
+
+    if ( `"`missing'"' == "" ) local missing nomissing
+
+    // gather results
+    tempname tmp
+    tempname gtabstat
+    qui gstats tabstat `varlist' if `touse' [`weight'`exp'], mata(`gtabstat') ///
+        `statistics' `stats' `byopt' `missing' columns(`columns')
+
+    mata st_local("stats",  invtokens(`gtabstat'.statnames))
+    mata st_local("vars",   invtokens(`gtabstat'.statvars))
+    mata st_local("R",      strofreal(`gtabstat'.ksources))
+    mata st_local("g",      strofreal(`gtabstat'.kby? `gtabstat'.J: 0))
+
+    local stats: subinstr local stats "N" "count", word all
+    local stats: subinstr local stats "se(mean)" "semean", word all
+
+    if `"`columns'"'=="statistics" {
+        local cnames: copy local stats
+    }
+    else {
+        local cnames: copy local vars
+    }
+    local cnames: subinstr local cnames "b" "_b", word all
+    local cnames: subinstr local cnames "V" "_V", word all
+
+    local j 0
+    foreach cname of local cnames {
+        tempname _`++j'
+    }
+
+    local space
+    local labels
+    forv i = 1/`g' {
+        if `numby' {
+            mata st_local("name", sprintf(st_varformat(`gtabstat'.byvars[1]), `gtabstat'.getnum(`i', 1)))
+        }
+        else {
+            mata st_local("name", `gtabstat'.getchar(`i', 1, 0))
+        }
+        local labels `"`labels'`space'`"`name'"'"'
+    }
+
+    if `R'==1 {
+        if `numby' {
+            _estpost_namesandlabels "`by'" `"`labels'"' "" "`elabels'"   // sets names, savenames, labels
+        }
+        else {
+            _estpost_namesandlabels "" "" `"`labels'"' "`elabels'"       // sets names, savenames, labels
+        }
+    }
+    else {
+        if `numby' {
+            _estpost_eqnamesandlabels "`by'" `"`labels'"' "" "`elabels'" // sets eqnames, eqlabels
+        }
+        else {
+            _estpost_eqnamesandlabels "" "" `"`labels'"' "`elabels'"     // sets eqnames, eqlabels
+        }
+        local names `"`eqnames'"'
+        local labels `"`macval(eqlabels)'"'
+    }
+
+    tempname glabname
+    tempname glabstat
+    tempname glabvar
+    tempname glabmat
+
+    forv i = 1/`g' {
+        mata `glabname' = `gtabstat'.getf(`i', 1, .)
+        mata `glabmat'  = `gtabstat'.colvar? `gtabstat'.getOutputGroup(`i'): `gtabstat'.getOutputGroup(`i')'
+
+        if `"`columns'"'=="statistics"  {
+            mata `glabstat' = (J(`gtabstat'.kstats,   1, ""),         `gtabstat'.statnames')
+            mata `glabvar'  = (J(`gtabstat'.ksources, 1, `glabname'), `gtabstat'.statvars')
+        }
+        else {
+            mata `glabstat' = (J(`gtabstat'.kstats,   1, `glabname'), `gtabstat'.statnames')
+            mata `glabvar'  = (J(`gtabstat'.ksources, 1, ""),         `gtabstat'.statvars')
+        }
+
+        mata st_matrix("`tmp'", `glabmat')
+        mata st_matrixrowstripe("`tmp'", `glabstat')
+        mata st_matrixcolstripe("`tmp'", `glabvar')
+
+        if `"`columns'"'=="statistics"  {
+            mat `tmp' = `tmp''
+            if ( `R'==1 ) {
+                mata `glabstat' = ("", `glabname')
+                mata `glabvar'  = (J(`gtabstat'.kstats, 1, ""), `gtabstat'.statnames')
+                mata st_matrixrowstripe("`tmp'", `glabstat')
+                mata st_matrixcolstripe("`tmp'", `glabvar')
+            }
+        }
+
+        local j 0
+        foreach cname of local cnames {
+            local ++j
+            mat `_`j'' = nullmat(`_`j''), `tmp'[1..., `j']'
+        }
+    }
+
+    if ( `g' == 0 ) {
+        mata `glabmat'  = `gtabstat'.colvar? `gtabstat'.output: `gtabstat'.output'
+        mata `glabstat' = (J(`gtabstat'.kstats,   1, ""), `gtabstat'.statnames')
+        mata `glabvar'  = (J(`gtabstat'.ksources, 1, ""), `gtabstat'.statvars')
+
+        mata st_matrix("`tmp'", `glabmat')
+        mata st_matrixrowstripe("`tmp'", `glabstat')
+        mata st_matrixcolstripe("`tmp'", `glabvar')
+        if `"`columns'"'=="statistics" {
+            mat `tmp' = `tmp''
+        }
+
+        local j 0
+        foreach cname of local cnames {
+            local ++j
+            mat `_`j'' = nullmat(`_`j''), `tmp'[1..., `j']'
+        }
+    }
+
+    // display
+    if "`quietly'"=="" {
+        tempname res
+        local rescoln
+        local j 0
+        foreach cname of local cnames {
+            local ++j
+            mat `res' = nullmat(`res'), `_`j'''
+            local rescoln `rescoln' e(`cname')
+        }
+        mat coln `res' = `rescoln'
+        di _n as txt "Summary statistics: `stats'"
+        di    as txt "     for variables: `vars'"
+        if "`by'"!="" {
+            di as txt "  by categories of: `by'"
+        }
+        if c(stata_version)<9 {
+            mat list `res', noheader nohalf format(%9.0g)
+        }
+        else {
+            if `R'==1 & `g'>0 {
+                mat rown `res' = `savenames'
+            }
+            matlist `res', nohalf `rowtotal' rowtitle(`by')
+        }
+        if `"`macval(labels)'"'!="" {
+            di _n as txt "category labels saved in macro e(labels)"
+        }
+        mat drop `res'
+    }
+
+    // post results
+    local b
+    local V
+    if c(stata_version)<9 { // b and V required in Stata 8
+        tempname b V
+        mat `b' = `_1' \ J(1, colsof(`_1'), 0)
+        mat `b' = `b'[2,1...]
+        mat `V' = `b'' * `b'
+    }
+    if "`esample'"!="" local esample esample(`touse')
+    eret post `b' `V', obs(`N') `esample'
+
+    eret local labels `"`macval(labels)'"'
+    eret local byvar "`by'"
+    eret local vars "`vars'"
+    eret local stats "`stats'"
+    eret local wexp `"`exp'"'
+    eret local wtype `"`weight'"'
+    eret local subcmd "tabstat"
+    eret local cmd "estpost"
+
+    local nmat: list sizeof cnames
+    forv j=`nmat'(-1)1 {
+        local cname: word `j' of `cnames'
+        eret matrix `cname' = `_`j''
+    }
+
+    cap mata mata drop `gtabstat'
+    cap mata mata drop `glabname'
+    cap mata mata drop `glabstat'
+    cap mata mata drop `glabvar'
+    cap mata mata drop `glabmat'
 end
 
 * 99.
