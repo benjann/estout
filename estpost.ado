@@ -1,4 +1,4 @@
-*! version 1.1.9  01mar2019  Ben Jann
+*! version 1.2.0  13jun2019  Ben Jann
 * 1. estpost
 * 2. estpost_summarize
 * 3. estpost_tabulate

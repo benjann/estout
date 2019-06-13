@@ -1,5 +1,5 @@
 {smcl}
-{* 01feb2017}{...}
+{* 13jun2019}{...}
 {hi:help estpost}{right:also see: {helpb esttab}, {helpb estout}, {helpb eststo}, {helpb estadd}}
 {right: {browse "http://repec.sowi.unibe.ch/stata/estout/"}}
 {hline}
@@ -16,13 +16,13 @@
 
 {marker commands}
     {it:command}{col 26}description
-    {hline 66}
+    {hline 79}
     {helpb estpost##summarize:{ul:su}mmarize}{col 26}{...}
 post summary statistics
     {helpb estpost##tabstat:tabstat}{col 26}{...}
 post summary statistics
-    {helpb estpost##gtabstat:gstats tab}{col 26}{...}
-post summary statistics
+    {helpb estpost##gtabstat:gtabstat}{col 26}{...}
+post summary statistics (using {helpb gstats tab} from {helpb gtools})
     {helpb estpost##ttest:ttest}{col 26}{...}
 post two-group mean-comparison tests
     {helpb estpost##prtest:prtest}{col 26}{...}
@@ -43,7 +43,7 @@ post confidence intervals for means
     and percentiles of survival time
     {helpb estpost##margins:margins}{col 26}{...}
 post results from {cmd:margins} (Stata 11 or newer)
-    {hline 66}
+    {hline 79}
 
 
 {title:Description}
@@ -312,7 +312,7 @@ variable or statistic, depending on {cmd:columns()}.
 {* end example }{txt}{...}
 
 {marker gtabstat}
-{dlgtab:gstats tab}
+{dlgtab:gtabstat}
 
 {p 4 15 2}
 {cmd:estpost} {cmdab:gtabstat}
@@ -454,7 +454,6 @@ variable or statistic, depending on {cmd:columns()}.
                             {res} {ralign 12:{txt:(}0.838{txt:)}} {ralign 12:{txt:(}0.717{txt:)}} {ralign 12:{txt:(}0.990{txt:)}}{txt}
         {txt}{hline 59}
 {* end example }{txt}{...}
-
 
 {marker ttest}
 {dlgtab:ttest}
@@ -1479,6 +1478,8 @@ also copies all other matrixes, scalars, and macros from {helpb margins} into
 {title:Author}
 
 {p 4 4 2} Ben Jann, Institute of Sociology, University of Bern, jann@soz.unibe.ch
+
+{p 4 4 2} {cmd:estpost gtabstat} has been contributed by Mauricio Caceres Bravo.
 
 
 {title:Also see}
