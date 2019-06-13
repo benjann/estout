@@ -21,6 +21,8 @@
 post summary statistics
     {helpb estpost##tabstat:tabstat}{col 26}{...}
 post summary statistics
+    {helpb estpost##gtabstat:gstats tab}{col 26}{...}
+post summary statistics
     {helpb estpost##ttest:ttest}{col 26}{...}
 post two-group mean-comparison tests
     {helpb estpost##prtest:prtest}{col 26}{...}
@@ -308,6 +310,151 @@ variable or statistic, depending on {cmd:columns()}.
                             {res} {ralign 12:{txt:(}0.838{txt:)}} {ralign 12:{txt:(}0.717{txt:)}} {ralign 12:{txt:(}0.990{txt:)}}{txt}
         {txt}{hline 59}
 {* end example }{txt}{...}
+
+{marker gtabstat}
+{dlgtab:gstats tab}
+
+{p 4 15 2}
+{cmd:estpost} {cmdab:gtabstat}
+    {it:{help varlist}} [{it:{help if}}] [{it:{help in}}] [{it:{help weight}}]
+    [{cmd:,}
+        {cmdab:s:tatistics:(}{it:{help gstats tab##statname:statname}} [{it:...}]{cmd:)}
+        {cmdab:c:olumns:(}{cmdab:v:ariables}|{cmdab:s:tatistics:)}
+        {cmd:by(}{it:varname}{cmd:)}
+        {cmdab:m:issing}
+        {cmdab:q:uietly}
+        {cmdab:es:ample}
+        {cmdab:el:abels}
+    ]
+
+{p 4 4 2}
+    posts summary statistics computed by {helpb gstats tab} from        
+    the {helpb gtools} package. {cmd:gstats tab} is a fast, by-able     
+    alternative to {cmd:tabstat}. {cmd:aweight}s and {cmd:fweight}s are 
+    allowed; see {help weight}. However, {cmd:total}, {cmd:casewise},   
+    and {cmd:listwise} are not allowed.                                 
+
+{p 4 4 2}
+    Options are:
+
+{p 8 12 2}
+        {cmd:statistics()}, {cmd:columns()}, and {cmd:by()} as described
+        in help {helpb gstats tab}. By default {cmd:nomissing} is passed;
+        use {cmd:missing} to include missing-value groups.
+
+{p 8 12 2}
+        {cmd:quietly} to suppress the output.
+
+{p 8 12 2}
+        {cmd:esample} to mark the estimation sample in {cmd:e(sample)}.
+
+{p 8 12 2}
+        {cmd:elabels} to enforce saving the {cmd:by()} values/labels in macro 
+        {cmd:e(labels)}.
+
+{p 4 4 2}A vector of results is saved in {cmd:e()} for each specified
+variable or statistic, depending on {cmd:columns()}.
+
+{p 4 4 2}
+    Examples:
+
+{* begin example gtabstat }{...}
+        {com}. sysuse auto, clear
+        {txt}(1978 Automobile Data)
+
+        {com}. estpost gtabstat price mpg rep78, ///
+        >     statistics(mean sd)
+
+        {txt}Summary statistics: mean sd
+             for variables: price mpg rep78
+
+        {ralign 12:} {c |} {ralign 9:e(price)}  {ralign 9:e(mpg)}  {ralign 9:e(rep78)}
+        {hline 13}{c   +}{hline 11}{hline 11}{hline 11}
+        {ralign 12:mean} {c |} {ralign 9:{res:{sf: 6146.043}}}  {ralign 9:{res:{sf: 21.28986}}}  {ralign 9:{res:{sf: 3.405797}}}
+        {ralign 12:sd} {c |} {ralign 9:{res:{sf:  2912.44}}}  {ralign 9:{res:{sf: 5.866408}}}  {ralign 9:{res:{sf: .9899323}}}
+
+        {com}. esttab ., cells("price mpg rep78")
+        {res}
+        {txt}{hline 51}
+        {txt}                      (1)
+        {txt}
+        {txt}                    price          mpg        rep78
+        {txt}{hline 51}
+        {txt}mean        {res}     6146.043     21.28986     3.405797{txt}
+        {txt}sd          {res}      2912.44     5.866408     .9899323{txt}
+        {txt}{hline 51}
+        {txt}N           {res}           69                          {txt}
+        {txt}{hline 51}
+
+        {com}. estpost gtabstat price mpg rep78, ///
+        >     statistics(mean sd) columns(statistics)
+
+        {txt}Summary statistics: mean sd
+             for variables: price mpg rep78
+
+        {ralign 12:} {c |} {ralign 9:e(mean)}  {ralign 9:e(sd)}
+        {hline 13}{c   +}{hline 11}{hline 11}
+        {ralign 12:price} {c |} {ralign 9:{res:{sf: 6146.043}}}  {ralign 9:{res:{sf:  2912.44}}}
+        {ralign 12:mpg} {c |} {ralign 9:{res:{sf: 21.28986}}}  {ralign 9:{res:{sf: 5.866408}}}
+        {ralign 12:rep78} {c |} {ralign 9:{res:{sf: 3.405797}}}  {ralign 9:{res:{sf: .9899323}}}
+
+        {com}. esttab ., cells("mean(fmt(a3)) sd")
+        {res}
+        {txt}{hline 38}
+        {txt}                      (1)
+        {txt}
+        {txt}                     mean           sd
+        {txt}{hline 38}
+        {txt}price       {res}       6146.0       2912.4{txt}
+        {txt}mpg         {res}        21.29        5.866{txt}
+        {txt}rep78       {res}        3.406        0.990{txt}
+        {txt}{hline 38}
+        {txt}N           {res}           69             {txt}
+        {txt}{hline 38}
+
+        {com}. estpost gtabstat price mpg rep78, by(foreign) ///
+        >     statistics(mean sd) columns(statistics)
+
+        {txt}Summary statistics: mean sd
+             for variables: price mpg rep78
+          by categories of: foreign
+
+        {ralign 12:foreign} {c |} {ralign 9:e(mean)}  {ralign 9:e(sd)}
+        {hline 13}{c   +}{hline 11}{hline 11}
+        {res:{lalign 13:Domestic}}{c |}{space 11}{space 11}
+        {ralign 12:price} {c |} {ralign 9:{res:{sf:  6179.25}}}  {ralign 9:{res:{sf: 3188.969}}}
+        {ralign 12:mpg} {c |} {ralign 9:{res:{sf: 19.54167}}}  {ralign 9:{res:{sf: 4.753312}}}
+        {ralign 12:rep78} {c |} {ralign 9:{res:{sf: 3.020833}}}  {ralign 9:{res:{sf:  .837666}}}
+        {hline 13}{c   +}{hline 11}{hline 11}
+        {res:{lalign 13:Foreign}}{c |}{space 11}{space 11}
+        {ralign 12:price} {c |} {ralign 9:{res:{sf: 6070.143}}}  {ralign 9:{res:{sf: 2220.984}}}
+        {ralign 12:mpg} {c |} {ralign 9:{res:{sf: 25.28571}}}  {ralign 9:{res:{sf: 6.309856}}}
+        {ralign 12:rep78} {c |} {ralign 9:{res:{sf: 4.285714}}}  {ralign 9:{res:{sf: .7171372}}}
+        {hline 13}{c   +}{hline 11}{hline 11}
+        {res:{lalign 13:Total}}{c |}{space 11}{space 11}
+        {ralign 12:price} {c |} {ralign 9:{res:{sf: 6146.043}}}  {ralign 9:{res:{sf:  2912.44}}}
+        {ralign 12:mpg} {c |} {ralign 9:{res:{sf: 21.28986}}}  {ralign 9:{res:{sf: 5.866408}}}
+        {ralign 12:rep78} {c |} {ralign 9:{res:{sf: 3.405797}}}  {ralign 9:{res:{sf: .9899323}}}
+
+        {com}. esttab ., main(mean) aux(sd) nostar unstack ///
+        >     noobs nonote label
+        {res}
+        {txt}{hline 59}
+        {txt}                              (1)
+        {txt}
+        {txt}                         Domestic      Foreign        Total
+        {txt}{hline 59}
+        {txt}Price               {res}       6179.3       6070.1       6146.0{txt}
+                            {res} {ralign 12:{txt:(}3189.0{txt:)}} {ralign 12:{txt:(}2221.0{txt:)}} {ralign 12:{txt:(}2912.4{txt:)}}{txt}
+
+        {txt}Mileage (mpg)       {res}        19.54        25.29        21.29{txt}
+                            {res} {ralign 12:{txt:(}4.753{txt:)}} {ralign 12:{txt:(}6.310{txt:)}} {ralign 12:{txt:(}5.866{txt:)}}{txt}
+
+        {txt}Repair Record 1978  {res}        3.021        4.286        3.406{txt}
+                            {res} {ralign 12:{txt:(}0.838{txt:)}} {ralign 12:{txt:(}0.717{txt:)}} {ralign 12:{txt:(}0.990{txt:)}}{txt}
+        {txt}{hline 59}
+{* end example }{txt}{...}
+
 
 {marker ttest}
 {dlgtab:ttest}
