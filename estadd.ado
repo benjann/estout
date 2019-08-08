@@ -1,4 +1,4 @@
-*! version 2.3.6  07aug2019  Ben Jann
+*! version 2.3.5  05feb2016  Ben Jann
 *  1. estadd and helpers
 *  2. estadd_local
 *  3. estadd_scalar
@@ -682,9 +682,6 @@ end
 program define estadd_vif, eclass
     version 8.2
     local caller : di _caller()
-    if c(stata_version)>=16 {
-        version 15, user    // enforce old colnumb()/rownumb() behavior
-    }
     syntax [, TOLerance SQRvif Prefix(name) Replace Quietly ]
 //check availability of e(sample)
     confirm_esample
@@ -802,9 +799,6 @@ end
 * -estadd- subroutine: partial and semi-partial correlations
 program define estadd_pcorr, eclass
     version 8.2
-    if c(stata_version)>=16 {
-        version 15, user    // enforce old colnumb()/rownumb() behavior
-    }
     syntax [, semi Prefix(name) Replace Quietly ]
 //check availability of e(sample)
     confirm_esample
@@ -1160,9 +1154,6 @@ end
 program define estadd_mlogtest, eclass
     version 8.2
     local caller : di _caller()
-    if c(stata_version)>=16 {
-        version 15, user    // enforce old colnumb()/rownumb() behavior
-    }
     syntax [anything] [ , Prefix(name) Replace Quietly set(passthru) * ]
     `quietly' version `caller': mlogtest `anything' , `set' `options'
     local rmat: r(matrices)
@@ -1289,9 +1280,6 @@ end
 program define estadd_prchange
     version 8.2
     local caller : di _caller()
-    if c(stata_version)>=16 {
-        version 15, user    // enforce old colnumb()/rownumb() behavior
-    }
     syntax [anything] [if] [in] [ , Prefix(name) Replace Quietly ///
         PAttern(str) Binary(str) Continuous(str) NOAvg Avg split SPLIT2(name) ///
             adapt /// old syntax; now works as synonym for noavg
@@ -1769,9 +1757,6 @@ end
 program define estadd_prvalue, eclass
     version 9.2
     local caller : di _caller()
-    if c(stata_version)>=16 {
-        version 15, user    // enforce old colnumb()/rownumb() behavior
-    }
     syntax [anything] [if] [in] [ , Prefix(passthru) Replace Quietly ///
         LABel(str) Title(passthru) swap Diff * ]
 

@@ -1,10 +1,7 @@
-*! version 3.24  06aug2019  Ben Jann
+*! version 3.23  31may2019  Ben Jann
 
 program define estout, rclass
     version 8.2
-    if c(stata_version)>=16 {
-        version 15, user    // enforce old colnumb()/rownumb() behavior
-    }
     return local cmdline estout `macval(0)'
     syntax [anything] [using] [ , ///
         Cells(string asis) ///
