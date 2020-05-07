@@ -264,6 +264,38 @@ program define esttab
     local booktabs_cilab      `"`macval(tex_cilab)'"'
     local booktabs_substitute `"`macval(tex_substitute)'"'
     local booktabs_interaction `"`macval(tex_interaction)'"'
+// - mmd
+    local mmd_open0          `""'
+    local mmd_close0         `""'
+    local mmd_open           `""""'
+    local mmd_close          `""""'
+    local mmd_caption        `""@title""'
+    local mmd_open2          `""'
+    local mmd_close2         `""'
+    local mmd_toprule        `""""'
+    local mmd_midrule        `""'
+    local mmd_bottomrule     `""""'
+    local mmd_topgap         `""'
+    local mmd_midgap         `""'
+    local mmd_bottomgap      `""'
+    local mmd_eqrule         `""'
+    local mmd_ssl            `"*N* *R*<sup>2</sup> "adj. *R*<sup>2</sup>" "pseudo *R*<sup>2</sup>" *AIC* *BIC*"'
+    local mmd_lsl            `"Observations *R*<sup>2</sup> "Adjusted *R*<sup>2</sup>" "Pseudo *R*<sup>2</sup>" *AIC* *BIC*"'
+    local mmd_starlevels     `"<sup>\*</sup> 0.05 <sup>\*\*</sup> 0.01 <sup>\*\*\*</sup> 0.001"'
+    local mmd_starlevlab     `", label(" *p* < ")"'
+    local mmd_begin          `"| "'
+    local mmd_delimiter      `" | "'
+    local mmd_end            `" |"'
+    local mmd_incelldel      `" "'
+    local mmd_varwidth       `"\`= cond("\`label'"=="", 12, 20)'"'
+    local mmd_modelwidth     `"12"'
+    local mmd_abbrev         `""'
+    local mmd_substitute     `"`"_ \_ "\_cons " \_cons"'"'
+    local mmd_interaction    `"" # ""'
+    local mmd_tstatlab       `"*t* statistics"'
+    local mmd_zstatlab       `"*z* statistics"'
+    local mmd_pvallab        `"*p*-values"'
+    local mmd_cilab          `"\`level'\% confidence intervals"'
 
 // syntax
     syntax [anything] [using] [ , ///
@@ -296,7 +328,7 @@ program define esttab
      ADDNotes(string asis) ///
      COMpress ///
      plain ///
-     smcl FIXed tab csv SCsv rtf HTMl tex BOOKTabs ///
+     smcl FIXed tab csv SCsv rtf HTMl tex BOOKTabs mmd ///
      Fragment ///
      page PAGE2(str) ///
      ALIGNment(str asis) ///
@@ -344,7 +376,7 @@ program define esttab
     }
 
 // format modes
-    local mode `smcl' `fixed' `tab' `csv' `scsv' `rtf' `html' `tex' `booktabs'
+    local mode `smcl' `fixed' `tab' `csv' `scsv' `rtf' `html' `tex' `booktabs' `mmd'
     if `:list sizeof mode'>1 {
         di as err "only one allowed of smcl, fixed, tab, csv, scsv, rtf, html, tex, or booktabs"
         exit 198
@@ -362,6 +394,7 @@ program define esttab
             else if `"`suffix'"'==".csv"             local mode csv
             else if `"`suffix'"'==".rtf"             local mode rtf
             else if `"`suffix'"'==".smcl"            local mode smcl
+            else if `"`suffix'"'==".md"              local mode mmd
             else local mode fixed
         }
         else local mode smcl
@@ -379,6 +412,7 @@ program define esttab
         else if "`mode'"=="html"                  local suffix ".html"
         else if inlist("`mode'","tex","booktabs") local suffix ".tex"
         else if "`mode'"=="smcl"                  local suffix ".smcl"
+        else if "`mode'"=="mmd"                   local suffix ".md"
         local using `"using `"`fn'`suffix'"'"'
         local using0 `" `"`fn'`suffix'"'"'
     }
