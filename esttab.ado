@@ -378,7 +378,7 @@ program define esttab
 // format modes
     local mode `smcl' `fixed' `tab' `csv' `scsv' `rtf' `html' `tex' `booktabs' `mmd'
     if `:list sizeof mode'>1 {
-        di as err "only one allowed of smcl, fixed, tab, csv, scsv, rtf, html, tex, or booktabs"
+        di as err "only one allowed of smcl, fixed, tab, csv, scsv, rtf, html, tex, booktabs, or mmd"
         exit 198
     }
     if `"`using'"'!="" {
@@ -389,12 +389,12 @@ program define esttab
     }
     if "`mode'"=="" {
         if `"`using'"'!="" {
-            if inlist(`"`suffix'"', ".html", ".htm") local mode html
-            else if `"`suffix'"'==".tex"             local mode tex
-            else if `"`suffix'"'==".csv"             local mode csv
-            else if `"`suffix'"'==".rtf"             local mode rtf
-            else if `"`suffix'"'==".smcl"            local mode smcl
-            else if `"`suffix'"'==".md"              local mode mmd
+            if inlist(`"`suffix'"', ".html", ".htm")    local mode html
+            else if `"`suffix'"'==".tex"                local mode tex
+            else if `"`suffix'"'==".csv"                local mode csv
+            else if `"`suffix'"'==".rtf"                local mode rtf
+            else if `"`suffix'"'==".smcl"               local mode smcl
+            else if inlist(`"`suffix'"', ".md", ".mmd") local mode mmd
             else local mode fixed
         }
         else local mode smcl
@@ -422,6 +422,9 @@ program define esttab
     else if "`mode0'"=="csv" {
         if "`plain'"=="" local csvlhs `"=""'
         else local csvlhs `"""'
+    }
+    else if "`mode0'"=="mmd" {
+        local style "style(mmd)"
     }
     if "`compress'"!="" {
         if "``mode'_modelwidth'"!="" {
