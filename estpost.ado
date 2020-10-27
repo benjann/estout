@@ -1756,7 +1756,7 @@ prog estpost_gtabstat, eclass
     }
 
     // syntax
-    syntax varlist [if] [in] [aw fw] [, ESample Quietly ///
+    syntax varlist [if] [in] [aw fw pw] [, ESample Quietly ///
           Statistics(passthru) stats(passthru) ///
           by(varname) Missing Columns(str) ELabels ]
     local l = length(`"`columns'"')
