@@ -28,6 +28,14 @@ Installation from GitHub:
 
 Main changes:
 
+    30apr2021
+    estout.ado (3.24)
+    - the value of the previous statistic was reported instead of missing, if the
+      model p-value was requested, but the model contained no (nonmissing) F or 
+      chi2 value; this is fixed
+    - the last format was used for all CIs if multiple formats were specified in 
+      cells(ci(fmt())); this is fixed
+    
     17apr2020
     - installation files added to GitHub distribution
     
