@@ -1,4 +1,4 @@
-*! version 3.23  31may2019  Ben Jann
+*! version 3.24  30apr2021  Ben Jann
 
 program define estout, rclass
     version 8.2
@@ -1560,7 +1560,7 @@ program define estout, rclass
                         else if "``vi'_'"=="ci" {
                             if `_`vi'_l'[`rr',`m']>=.y local value `"``vi'_vacant'"'
                             else {
-                                local format: word `r' of `ci_fmt'
+                                local format: word `r' of ``vi'_fmt'
                                 if "`format'"=="" {
                                     local format: word `:word count ``vi'_fmt'' of ``vi'_fmt'
                                 }
@@ -2833,11 +2833,14 @@ program GetStats, rclass
                 scalar `st' = e(`stat')
             }
             else if "`stat'"=="p" {
-                if e(F)<. {
+                if `"`e(F)'"'!="" {
                     scalar `st' = Ftail(e(df_m), e(df_r), e(F))
                 }
-                else if e(chi2)<. {
+                else if `"`e(chi2)'"'!="" {
                     scalar `st' = chi2tail(e(df_m), e(chi2))
+                }
+                else {
+                    scalar `st' = .z
                 }
             }
             else if `:list stat in emacros' > 0 {
