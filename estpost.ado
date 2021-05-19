@@ -1,4 +1,4 @@
-*! version 1.2.0  13jun2019  Ben Jann
+*! version 1.2.1  19may2021  Ben Jann
 * 1. estpost
 * 2. estpost_summarize
 * 3. estpost_tabulate
@@ -1756,7 +1756,7 @@ prog estpost_gtabstat, eclass
     }
 
     // syntax
-    syntax varlist [if] [in] [aw fw] [, ESample Quietly ///
+    syntax varlist [if] [in] [aw fw iw pw] [, ESample Quietly ///
           Statistics(passthru) stats(passthru) ///
           by(varname) Missing Columns(str) ELabels ]
     local l = length(`"`columns'"')

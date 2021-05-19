@@ -1,4 +1,4 @@
-*! version 2.0.9  06feb2016  Ben Jann
+*! version 2.1.0  19may2021  Ben Jann
 *! wrapper for estout
 
 program define esttab
@@ -264,7 +264,38 @@ program define esttab
     local booktabs_cilab      `"`macval(tex_cilab)'"'
     local booktabs_substitute `"`macval(tex_substitute)'"'
     local booktabs_interaction `"`macval(tex_interaction)'"'
-
+// - mmd
+    local mmd_open0          `""'
+    local mmd_close0         `""'
+    local mmd_open           `""""'
+    local mmd_close          `""""'
+    local mmd_caption        `""@title" """'
+    local mmd_open2          `""'
+    local mmd_close2         `""'
+    local mmd_toprule        `""'
+    local mmd_midrule        `""'
+    local mmd_bottomrule     `""'
+    local mmd_topgap         `""'
+    local mmd_midgap         `""'
+    local mmd_bottomgap      `""'
+    local mmd_eqrule         `""'
+    local mmd_ssl            `"*N* *R*<sup>2</sup> "adj. *R*<sup>2</sup>" "pseudo *R*<sup>2</sup>" *AIC* *BIC*"'
+    local mmd_lsl            `"Observations *R*<sup>2</sup> "Adjusted *R*<sup>2</sup>" "Pseudo *R*<sup>2</sup>" *AIC* *BIC*"'
+    local mmd_starlevels     `"<sup>\*</sup> 0.05 <sup>\*\*</sup> 0.01 <sup>\*\*\*</sup> 0.001"'
+    local mmd_starlevlab     `", label(" *p* < ")"'
+    local mmd_begin          `"| "'
+    local mmd_delimiter      `" | "'
+    local mmd_end            `" |"'
+    local mmd_incelldel      `" "'
+    local mmd_varwidth       `"\`= cond("\`label'"=="", 12, 20)'"'
+    local mmd_modelwidth     `"12"'
+    local mmd_abbrev         `""'
+    local mmd_substitute     `"_ \_ "\_cons " \_cons"'
+    local mmd_interaction    `"" # ""'
+    local mmd_tstatlab       `"*t* statistics"'
+    local mmd_zstatlab       `"*z* statistics"'
+    local mmd_pvallab        `"*p*-values"'
+    local mmd_cilab          `"\`level'\% confidence intervals"'
 // syntax
     syntax [anything] [using] [ , ///
  /// coefficients and t-stats, se, etc.
@@ -296,7 +327,7 @@ program define esttab
      ADDNotes(string asis) ///
      COMpress ///
      plain ///
-     smcl FIXed tab csv SCsv rtf HTMl tex BOOKTabs ///
+     smcl FIXed tab csv SCsv rtf HTMl tex BOOKTabs md mmd ///
      Fragment ///
      page PAGE2(str) ///
      ALIGNment(str asis) ///
@@ -344,9 +375,9 @@ program define esttab
     }
 
 // format modes
-    local mode `smcl' `fixed' `tab' `csv' `scsv' `rtf' `html' `tex' `booktabs'
+    local mode `smcl' `fixed' `tab' `csv' `scsv' `rtf' `html' `tex' `booktabs' `md' `mmd'
     if `:list sizeof mode'>1 {
-        di as err "only one allowed of smcl, fixed, tab, csv, scsv, rtf, html, tex, or booktabs"
+        di as err "only one allowed of smcl, fixed, tab, csv, scsv, rtf, html, tex, booktabs, md, or mmd"
         exit 198
     }
     if `"`using'"'!="" {
@@ -362,6 +393,8 @@ program define esttab
             else if `"`suffix'"'==".csv"             local mode csv
             else if `"`suffix'"'==".rtf"             local mode rtf
             else if `"`suffix'"'==".smcl"            local mode smcl
+            else if `"`suffix'"'== ".md"             local mode md
+            else if `"`suffix'"'== ".mmd"            local mode mmd
             else local mode fixed
         }
         else local mode smcl
@@ -379,9 +412,12 @@ program define esttab
         else if "`mode'"=="html"                  local suffix ".html"
         else if inlist("`mode'","tex","booktabs") local suffix ".tex"
         else if "`mode'"=="smcl"                  local suffix ".smcl"
+        else if "`mode'"=="md"                    local suffix ".md"
+        else if "`mode'"=="mmd"                   local suffix ".mmd"
         local using `"using `"`fn'`suffix'"'"'
         local using0 `" `"`fn'`suffix'"'"'
     }
+    if "`mode'"=="md" local mode "mmd"  // !
     if "`mode'"=="smcl" local smcltags smcltags
     local mode0 `mode'
     if "`mode0'"=="booktabs" local mode0 tex
@@ -789,6 +825,20 @@ program define esttab
                 local closing `"`macval(closing)' `"{\pard\ql\fs20 `macval(chunk)'\par}"'"'
             }
         }
+        else if "`mode0'"=="mmd" {
+            local n_chunks: list sizeof thenote
+            if `n_chunks' {
+                local closing `"`macval(closing)' """'
+                local i 0
+                foreach chunk of local thenote {
+                    local ++i
+                    if `i'<`n_chunks' {
+                        local chunk `"`macval(chunk)'<br>"'
+                    }
+                    local closing `"`macval(closing)' `"`macval(chunk)'"'"'
+                }
+            }
+        }
         else {
             local closing `"`macval(thenote)'"'
         }
@@ -925,7 +975,10 @@ program define esttab
 // execute estout
     if `"`varwidth'"'!="" local varwidth `"varwidth(`varwidth')"'
     if `"`modelwidth'"'!="" local modelwidth `"modelwidth(`modelwidth')"'
-    if `"`style'"'=="" local style "style(esttab)"
+    if `"`style'"'=="" {
+        if "`mode'"=="mmd" local style "style(mmd)"
+        else               local style "style(esttab)"
+    }
     CleanEstoutCmd `anything' `using' ,  ///
      `macval(cells)' `drop' `nomargin' `margin' `margin2' `noeform' `eform'       ///
      `nodiscrete' `macval(stats)' `stardetach' `macval(starlevels)'               ///

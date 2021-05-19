@@ -28,6 +28,16 @@ Installation from GitHub:
 
 Main changes:
 
+    19may2021
+    esttab.ado (2.1.0)
+    - added support for (Multi)Markdown through option -md- or -mmd- (or file suffix
+      .md or .mmd); md and mmd are synonyms; the changes are based on the suggestions
+      made by Emanuele Bardelli (see https://github.com/benjann/estout/pull/24)
+    
+    estpost.ado (1.2.1)
+    - pweights and iweights are now allowed by -estpost gtabstat-; proposed by 
+      Kye Lippold (see https://github.com/benjann/estout/pull/27)
+    
     30apr2021
     estout.ado (3.24)
     - the value of the previous statistic was reported instead of missing, if the

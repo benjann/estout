@@ -1,5 +1,5 @@
 {smcl}
-{* 13jun2019}{...}
+{* 19may2021}{...}
 {hi:help estpost}{right:also see: {helpb esttab}, {helpb estout}, {helpb eststo}, {helpb estadd}}
 {right: {browse "http://repec.sowi.unibe.ch/stata/estout/"}}
 {hline}
@@ -205,7 +205,7 @@ in {cmd:e()}.
         {cmd:esample} to mark the estimation sample in {cmd:e(sample)}.
 
 {p 8 12 2}
-        {cmd:elabels} to enforce saving the {cmd:by()} values/labels in macro 
+        {cmd:elabels} to enforce saving the {cmd:by()} values/labels in macro
         {cmd:e(labels)}.
 
 {p 4 4 2}A vector of results is saved in {cmd:e()} for each specified
@@ -328,11 +328,11 @@ variable or statistic, depending on {cmd:columns()}.
     ]
 
 {p 4 4 2}
-    posts summary statistics computed by {helpb gstats tab} from        
-    the {helpb gtools} package. {cmd:gstats tab} is a fast, by-able     
-    alternative to {cmd:tabstat}. {cmd:aweight}s and {cmd:fweight}s are 
-    allowed; see {help weight}. However, {cmd:total}, {cmd:casewise},   
-    and {cmd:listwise} are not allowed.                                 
+    posts summary statistics computed by {helpb gstats tab} from
+    the {helpb gtools} package. {cmd:gstats tab} is a fast, by-able
+    alternative to {cmd:tabstat}. {cmd:aweight}s, {cmd:fweight}s, {cmd:pweight}s
+    and {cmd:pweight}s are allowed; see {help weight}. However, {cmd:total}, {cmd:casewise},
+    and {cmd:listwise} are not allowed.
 
 {p 4 4 2}
     Options are:
@@ -349,7 +349,7 @@ variable or statistic, depending on {cmd:columns()}.
         {cmd:esample} to mark the estimation sample in {cmd:e(sample)}.
 
 {p 8 12 2}
-        {cmd:elabels} to enforce saving the {cmd:by()} values/labels in macro 
+        {cmd:elabels} to enforce saving the {cmd:by()} values/labels in macro
         {cmd:e(labels)}.
 
 {p 4 4 2}A vector of results is saved in {cmd:e()} for each specified
@@ -712,7 +712,7 @@ variable or statistic, depending on {cmd:columns()}.
         {cmd:esample} to mark the estimation sample in {cmd:e(sample)}.
 
 {p 8 12 2}
-        {cmd:elabels} to enforce saving labels in {cmd:e(labels)} and 
+        {cmd:elabels} to enforce saving labels in {cmd:e(labels)} and
         {cmd:e(eqlabels)}.
 
 {p 4 4 2}The following vectors are saved in {cmd:e()}:
@@ -735,8 +735,8 @@ the labels are stored in macro {cmd:e(labels)}. Type
 use the labels stored {cmd:e(labels)}. The value labels of the column variable
 are stored as equation names or, alternatively,
 in macro {cmd:e(eqlabels)}. Type {cmd:eqlabels(`e(eqlabels)')} in
-{helpb esttab} or {helpb estout} to use the labels stored in 
-{cmd:e(eqlabels)}. Specify the {cmd:elabels} option to enforce saving labels 
+{helpb esttab} or {helpb estout} to use the labels stored in
+{cmd:e(eqlabels)}. Specify the {cmd:elabels} option to enforce saving labels
 in {cmd:e(labels)} and {cmd:e(eqlabels)}.
 
 {p 4 4 2}Examples:
@@ -877,7 +877,7 @@ in {cmd:e(labels)} and {cmd:e(eqlabels)}.
         {cmd:esample} to mark the estimation sample in {cmd:e(sample)}.
 
 {p 8 12 2}
-        {cmd:elabels} to enforce saving labels in {cmd:e(labels)} and 
+        {cmd:elabels} to enforce saving labels in {cmd:e(labels)} and
         {cmd:e(eqlabels)}.
 
 {p 4 4 2}{cmd:estpost svy: tabulate} posts results in {cmd:e()} (except {cmd:e(V)})
@@ -906,8 +906,8 @@ the labels are stored in macro {cmd:e(labels)}. Type
 use the labels stored {cmd:e(labels)}. The value labels of the column variable
 are stored as equation names or, alternatively,
 in macro {cmd:e(eqlabels)}. Type {cmd:eqlabels(`e(eqlabels)')} in
-{helpb esttab} or {helpb estout} to use the labels stored in 
-{cmd:e(eqlabels)}. Specify the {cmd:elabels} option to enforce saving labels 
+{helpb esttab} or {helpb estout} to use the labels stored in
+{cmd:e(eqlabels)}. Specify the {cmd:elabels} option to enforce saving labels
 in {cmd:e(labels)} and {cmd:e(eqlabels)}.
 
 {p 4 4 2}Examples:
