@@ -28,6 +28,12 @@ Installation from GitHub:
 
 Main changes:
 
+    21mar2022
+    estout.ado (3.25)
+    - order() together with -unstack- lead to erroneous arrangement of the table
+      if there were unnamed equations; this is fixed
+      (see https://github.com/benjann/estout/issues/33)
+
     19may2021
     esttab.ado (2.1.0)
     - added support for (Multi)Markdown through option -md- or -mmd- (or file suffix

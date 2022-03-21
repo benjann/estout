@@ -1,4 +1,4 @@
-*! version 3.24  30apr2021  Ben Jann
+*! version 3.25  21mar2022  Ben Jann
 
 program define estout, rclass
     version 8.2
@@ -3897,6 +3897,23 @@ program Order
     tempname bt res
     local eqlist: roweq `b', q
     local eqlist: list uniq eqlist
+    if `: list sizeof eqlist'>1 {
+        // fix 21mar2022: replace equaton "_" by a tempname
+        local eqtmp `""_""'
+        local hasemptyeq: list eqtmp in eqlist
+        if `hasemptyeq' {
+            while (1) {
+                tempname eqtmp0
+                local eqtmp `""`eqtmp0'""'
+                if `:list eqtmp in eqlist'==0 continue, break
+            }
+            local eqlist: roweq `b', q
+            local eqlist: subinstr local eqlist `""_""' `"`eqtmp'"', all word
+            mat roweq `b' = `eqlist'
+            local eqlist: list uniq eqlist
+        }
+    }
+    else local hasemptyeq 0
     mat `bt' = `b'
     gettoken spi rest : spec
     while `"`spi'"'!="" {
@@ -3915,7 +3932,14 @@ program Order
             }
             local vars
         }
-        else local splist `"`spi'"'
+        else {
+            local splist `"`spi'"'
+            if `hasemptyeq' {
+                if substr(`"`splist'"',1,2)=="_:" {
+                    local splist: subinstr local splist "_:" "`eqtmp0':"
+                }
+            }
+        }
         gettoken sp splist : splist
         while `"`sp'"'!="" {
             local isp = rownumb(`bt', "`sp'")
@@ -3929,6 +3953,7 @@ program Order
                 if `nb' == 1 { // no rows left in `bt'
                     capt mat drop `b'
                     capt mat rename `res' `b'
+                    Order_emptyeq_restore `hasemptyeq' `b' `"`eqtmp'"'
                     exit
                 }
                 if `isp' == 1 {
@@ -3949,6 +3974,15 @@ program Order
     capt mat `res' = nullmat(`res') \ `bt'
     capt mat drop `b'
     capt mat rename `res' `b'
+    Order_emptyeq_restore `hasemptyeq' `b' `"`eqtmp'"'
+end
+
+program Order_emptyeq_restore
+    args hasemptyeq b eqtmp
+    if `hasemptyeq'==0 exit
+    local eqlist: roweq `b', q
+    local eqlist: subinstr local eqlist `"`eqtmp'"' `""_""', all word
+    mat roweq `b' = `eqlist'
 end
 
 prog MakeQuotedFullnames
