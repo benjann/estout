@@ -28,6 +28,11 @@ Installation from GitHub:
 
 Main changes:
 
+    22mar2022
+    estout.ado (3.26)
+    - now using a different approach to fix the order()/unstack issue; this also
+      fixes the second issue in https://github.com/benjann/estout/issues/33
+
     21mar2022
     estout.ado (3.25)
     - order() together with -unstack- lead to erroneous arrangement of the table

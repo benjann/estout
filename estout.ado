@@ -1,4 +1,4 @@
-*! version 3.25  21mar2022  Ben Jann
+*! version 3.26  22mar2022  Ben Jann
 
 program define estout, rclass
     version 8.2
@@ -1502,7 +1502,7 @@ program define estout, rclass
                     local unstackskipcoef 0
                     if "`unstack'"!="" {
                         capt local eqr: word `:word `c' of `eqsrow'' of `eqs'
-                        local rr=rownumb(`B',`"`eqr':`var'"')
+                        Rownumb rr `B' `"`eqr':`var'"'
                         if `"`eqr'"'!="" local eqvar `"`eqr':`var'"'
                         else local eqvar "`var'"
                         if `rr'>=. local unstackskipcoef 1 // local v "."
@@ -3897,23 +3897,6 @@ program Order
     tempname bt res
     local eqlist: roweq `b', q
     local eqlist: list uniq eqlist
-    if `: list sizeof eqlist'>1 {
-        // fix 21mar2022: replace equaton "_" by a tempname
-        local eqtmp `""_""'
-        local hasemptyeq: list eqtmp in eqlist
-        if `hasemptyeq' {
-            while (1) {
-                tempname eqtmp0
-                local eqtmp `""`eqtmp0'""'
-                if `:list eqtmp in eqlist'==0 continue, break
-            }
-            local eqlist: roweq `b', q
-            local eqlist: subinstr local eqlist `""_""' `"`eqtmp'"', all word
-            mat roweq `b' = `eqlist'
-            local eqlist: list uniq eqlist
-        }
-    }
-    else local hasemptyeq 0
     mat `bt' = `b'
     gettoken spi rest : spec
     while `"`spi'"'!="" {
@@ -3932,17 +3915,10 @@ program Order
             }
             local vars
         }
-        else {
-            local splist `"`spi'"'
-            if `hasemptyeq' {
-                if substr(`"`splist'"',1,2)=="_:" {
-                    local splist: subinstr local splist "_:" "`eqtmp0':"
-                }
-            }
-        }
+        else local splist `"`spi'"'
         gettoken sp splist : splist
         while `"`sp'"'!="" {
-            local isp = rownumb(`bt', "`sp'")
+            Rownumb isp `bt' "`sp'"
             if `isp' >= . {
                 gettoken sp splist : splist
                 continue
@@ -3953,7 +3929,6 @@ program Order
                 if `nb' == 1 { // no rows left in `bt'
                     capt mat drop `b'
                     capt mat rename `res' `b'
-                    Order_emptyeq_restore `hasemptyeq' `b' `"`eqtmp'"'
                     exit
                 }
                 if `isp' == 1 {
@@ -3965,7 +3940,7 @@ program Order
                 else {
                     mat `bt' = `bt'[1..`=`isp'-1',1...] \ `bt'[`=`isp'+1'...,1...]
                 }
-                local isp = rownumb(`bt', "`sp'")
+                Rownumb isp `bt' "`sp'"
             }
             gettoken sp splist : splist
         }
@@ -3974,15 +3949,22 @@ program Order
     capt mat `res' = nullmat(`res') \ `bt'
     capt mat drop `b'
     capt mat rename `res' `b'
-    Order_emptyeq_restore `hasemptyeq' `b' `"`eqtmp'"'
 end
 
-program Order_emptyeq_restore
-    args hasemptyeq b eqtmp
-    if `hasemptyeq'==0 exit
-    local eqlist: roweq `b', q
-    local eqlist: subinstr local eqlist `"`eqtmp'"' `""_""', all word
-    mat roweq `b' = `eqlist'
+program Rownumb
+    // variant of rownumb() that treats "_" as a distinct equation name
+    // (rownumb() treat "_" as "any equation name")
+    args lnm M s
+    if substr(`"`s'"', 1, 2) != "_:" {
+        c_local `lnm' = rownumb(`M', `"`s'"')
+        exit
+    }
+    tempname m
+    matrix `m' = `M'[1...,1]
+    local eqs: roweq `m', q
+    local eqs: subinstr local eqs `""_""' `""__N0NE__""', all word
+    matrix roweq `m' = `eqs'
+    c_local `lnm' = rownumb(`m', `"__N0NE_`s'"')
 end
 
 prog MakeQuotedFullnames
