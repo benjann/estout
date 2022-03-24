@@ -30,6 +30,18 @@ Main changes:
 
 
     24mar2022
+    estout.ado (3.28)
+    - the unicode translator introduced in 3.27 chopped lines after 200 characters;
+      this is fixed
+    - blanks in coefficient names lead to erroneous results when more than one
+      model was tabulated; this is fixed (Stata 11 or newer only)
+
+    24mar2022
+    estout.ado (3.28)
+    - blanks in coefficient names lead to erroneous results when more than one
+      model was tabulated; this is fixed (Stata 11 or newer only)
+
+    24mar2022
     estout.ado (3.27)
     - in Stata 14 or newer, a subroutine is now called that escapes non-ASCII
       characters if the output format is RTF (the characters are translated

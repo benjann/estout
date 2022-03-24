@@ -1,4 +1,4 @@
-*! version 3.27  24mar2022  Ben Jann
+*! version 3.28  24mar2022  Ben Jann
 
 program define estout, rclass
     version 8.2
@@ -2571,7 +2571,7 @@ program _estout_getres, rclass
                 RenameCoefs `bc' `"`rename'"'
             }
             if `hasbbc' {
-                mat_capp `bbc' : `bbc' `bc', miss(.z) cons ts
+                _estout_mat_capp `bbc' : `bbc' `bc', miss(.z) cons ts
             }
             else {
                 mat `bbc' = `bc'
@@ -2614,6 +2614,26 @@ program _estout_getres, rclass
     }
     return local names `names'
     return scalar nmodels = `ni'
+end
+
+program _estout_mat_capp
+    // variant of mat_capp that is robust against blanks in coefficient names
+    if c(stata_version)<11 { // requires Stata 11 or newer
+        mat_capp `0'
+        exit
+    }
+    syntax anything [, * ]
+    gettoken m1 m3 : anything, parse(":") // mat1
+    gettoken m2 m3 : m3, parse(":")       // :
+    gettoken m2 m3 : m3                   // mat2
+    gettoken m3    : m3                   // mat3
+    local hasblanks 0
+    mata: estout_rown_hasblanks("hasblanks", ("`m2'", "`m3'"))
+    if `hasblanks'==0 {
+        mat_capp `0'
+        exit
+    }
+    mata: estout_mat_capp("`m1'", ("`m2'", "`m3'"))
 end
 
 program DroppedCoefs // identify dropped coeffficients
@@ -3047,7 +3067,7 @@ program GetCoefs
             }
         }
         else {
-            mat_capp `bc' : `bc' `tmp', miss(.y) cons ts
+            _estout_mat_capp `bc' : `bc' `tmp', miss(.y) cons ts
         }
     }
     foreach coefn of local seqmergecoefs {
@@ -4788,6 +4808,52 @@ void estout_omitted_and_base()
         st_local("hasbc", "0")
     }
 }
+
+void estout_rown_hasblanks(string scalar lnm, string rowvector m)
+{
+    real scalar j
+    
+    for (j=1;j<=2;j++) {
+        if (m[j]=="") return
+        if (any(strpos(st_matrixrowstripe(m[j])[,2], " "))) {
+            st_local(lnm, "1")
+            return
+        }
+    }
+}
+
+void estout_mat_capp(string scalar m1, string rowvector m)
+{
+    real scalar      i, j
+    string scalar    key, val
+    string colvector rown
+    transmorphic     A
+    
+    // replace rownames that contain blanks
+    A = asarray_create()
+    asarray_notfound(A, "")
+    for (j=1;j<=2;j++) {
+        rown = st_matrixrowstripe(m[j])[,2]
+        for (i=rows(rown);i;i--) {
+            val = rown[i]
+            if (strpos(val, " ")) {
+                key = subinstr(val, " ", "_")
+                asarray(A, key, val)
+                rown[i] = key
+            }
+            st_matrixrowstripe(m[j], (st_matrixrowstripe(m[j])[,1],rown))
+        }
+    }
+    // apply mat_capp
+    stata("mat_capp " + st_local("0"))
+    // restore original names
+    rown = st_matrixrowstripe(m1)[,2]
+    for (i=rows(rown);i;i--) {
+        val = asarray(A, rown[i])
+        if (val!="") rown[i] = val
+    }
+    st_matrixrowstripe(m1, (st_matrixrowstripe(m1)[,1], rown))
+}
 end
 
 if c(stata_version)<14 exit
@@ -4797,22 +4863,30 @@ mata set matastrict on
 
 void estout_rtfencode(string scalar lname)
 {   // non-ASCII characters are translated to "\u#?" where # is the base 10 code
-    real scalar      i, ci
+    // (up to code 65535; replacement character is used for larger codes)
+    real scalar      n, l, i, ci
     real rowvector   c
-    string scalar    s
+    string scalar    s, snew
     string rowvector S
     
     s = st_local(lname)
     if (isascii(s)) return
-    c = frombase(16, tokens(subinstr(ustrtohex(s), "\u", " ")))
-    i = length(c)
-    S = J(1,i,"")
-    for (;i;i--) {
-        ci = c[i]
-        if      (ci<=127) S[i] = char(ci)
-        else              S[i] = "\u" + strofreal(ci) + "?"
+    l = ustrlen(s)
+    snew = ""
+    for (n=1;n<=l;n=n+200) {
+        c = frombase(16, /// possible hex formats: \uhhhh or \Uhhhhhhhh
+            substr(tokens(subinstr(ustrtohex(s, n), "\", " ")), 2, .))
+        i = length(c)
+        S = J(1,i,"")
+        for (;i;i--) {
+            ci = c[i]
+            if      (ci<=127)   S[i] = char(ci)
+            else if (ci<=65535) S[i] = "\u" + strofreal(ci) + "?"
+            else S[i] = "\u65533?" // unicode replacement character \ufffd
+        }
+        snew = snew + invtokens(S, "")
     }
-    s = st_local(lname, invtokens(S, ""))
+    st_local(lname, snew)
 }
 end
 
