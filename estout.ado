@@ -1,4 +1,4 @@
-*! version 3.28  24mar2022  Ben Jann
+*! version 3.29  24mar2022  Ben Jann
 
 program define estout, rclass
     version 8.2
@@ -4881,7 +4881,8 @@ void estout_rtfencode(string scalar lname)
         for (;i;i--) {
             ci = c[i]
             if      (ci<=127)   S[i] = char(ci)
-            else if (ci<=65535) S[i] = "\u" + strofreal(ci) + "?"
+            else if (ci<=32767) S[i] = "\u" + strofreal(ci) + "?"
+            else if (ci<=65535) S[i] = "\u" + strofreal(ci-65536) + "?"
             else S[i] = "\u65533?" // unicode replacement character \ufffd
         }
         snew = snew + invtokens(S, "")

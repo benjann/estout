@@ -29,7 +29,7 @@ Installation from GitHub:
 Main changes:
 
     24mar2022
-    estout.ado (3.28)
+    estout.ado (3.29)
     - the unicode translator introduced in 3.27 chopped lines after 200 characters;
       this is fixed
     - blanks in coefficient names lead to erroneous results when more than one
