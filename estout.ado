@@ -1,4 +1,4 @@
-*! version 3.26  22mar2022  Ben Jann
+*! version 3.27  24mar2022  Ben Jann
 
 program define estout, rclass
     version 8.2
@@ -208,7 +208,7 @@ program define estout, rclass
     foreach opt in unstack eform margin dropped discrete stardetach wrap ///
      legend label refcatlabel numbers lz abbrev replace append type showtabs ///
      smcltags smclrules smclmidrules smcleqrules asis outfilenoteoff ///
-     omitted baselevels {
+     omitted baselevels rtfencode {
         if "`no`opt''"!="" local `opt'
     }
 
@@ -1953,6 +1953,7 @@ program define estout, rclass
 
 *Finish: copy tempfile to user file / type to screen
     file close `file'
+    local rtfenc = ("`nortfencode'"=="") & (`hasrtf'!=0) & (c(stata_version)>=14)
     local S: word count `macval(substitute)'
     if `"`topfile'"'!="" {
         confirm file `"`topfile'"'
@@ -1991,6 +1992,9 @@ program define estout, rclass
             if `"`macval(from)'`macval(to)'"'!="" {
                 local temp: subinstr local temp `"`macval(from)'"' `"`macval(to)'"', all
             }
+        }
+        if `rtfenc' {
+            mata: estout_rtfencode("temp")
         }
         if `"`using'"'!="" {
             file write `file2' `"`macval(temp)'"' _n
@@ -2060,7 +2064,8 @@ program MoreOptions
         NOSMCLRules SMCLRules ///
         NOSMCLMIDRules SMCLMIDRules ///
         NOSMCLEQRules SMCLEQRules ///
-        NOOUTFILENOTEOFF outfilenoteoff
+        NOOUTFILENOTEOFF outfilenoteoff ///
+        NORTFENCODE rtfencode
     syntax [, `theoptions' ]
     foreach opt of local theoptions {
         local opt = lower("`opt'")
@@ -4784,3 +4789,30 @@ void estout_omitted_and_base()
     }
 }
 end
+
+if c(stata_version)<14 exit
+version 11
+mata:
+mata set matastrict on
+
+void estout_rtfencode(string scalar lname)
+{   // non-ASCII characters are translated to "\u#?" where # is the base 10 code
+    real scalar      i, ci
+    real rowvector   c
+    string scalar    s
+    string rowvector S
+    
+    s = st_local(lname)
+    if (isascii(s)) return
+    c = frombase(16, tokens(subinstr(ustrtohex(s), "\u", " ")))
+    i = length(c)
+    S = J(1,i,"")
+    for (;i;i--) {
+        ci = c[i]
+        if      (ci<=127) S[i] = char(ci)
+        else              S[i] = "\u" + strofreal(ci) + "?"
+    }
+    s = st_local(lname, invtokens(S, ""))
+}
+end
+

@@ -28,6 +28,14 @@ Installation from GitHub:
 
 Main changes:
 
+
+    24mar2022
+    estout.ado (3.27)
+    - in Stata 14 or newer, a subroutine is now called that escapes non-ASCII
+      characters if the output format is RTF (the characters are translated
+      to \u#?, where # is the base 10 character code); option -nortfencode-
+      prevents this behavior
+
     22mar2022
     estout.ado (3.26)
     - now using a different approach to fix the order()/unstack issue; this also

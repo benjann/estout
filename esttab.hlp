@@ -1,5 +1,5 @@
 {smcl}
-{* 19may2021}{...}
+{* 24mar2022}{...}
 {hi:help esttab}{right:also see: {helpb estout}, {helpb eststo}, {helpb estadd}, {helpb estpost}}
 {right: {browse "http://repec.sowi.unibe.ch/stata/estout/"}}
 {hline}
@@ -138,6 +138,8 @@ set width of table (LaTeX, HTML)
 multi-page table (LaTeX)
       {cmd:fonttbl(}{it:string}{cmd:)}{col 26}{...}
 set custom font table (RTF)
+      {cmd:nortfencode}{col 26}{...}
+do not escape non-ASCII characters (RTF)
 
     {help esttab##output:Output}
       {cmdab:r:eplace}{col 26}{...}
@@ -633,6 +635,12 @@ default is "{cmd:\f0\fnil Times New Roman;}". For example, typing
 
 {p 8 8 2}
 would add a title in Arial.
+
+{p 4 8 2}
+{cmd:nortfencode} prevents the translation of non-ASCII characters in RTF
+mode (a translated character is encoded as {cmd:\u}#{cmd:?}, where
+# is the base 10 character code). This is only relevant in Stata 14 or newer;
+no translation is applied in Stata 13 or older.
 
 {marker output}
 {dlgtab:Output}
