@@ -1,4 +1,4 @@
-*! version 3.29  24mar2022  Ben Jann
+*! version 3.30  25mar2022  Ben Jann
 
 program define estout, rclass
     version 8.2
@@ -582,18 +582,26 @@ program define estout, rclass
         local R 0
         local varlist       ""
         local eqlist        ""
-        local eqs           "_"
+        local eqs           "__"
         local fullvarlist   ""
     }
     else {
-        return matrix coefs = `B', copy // replace r(coefs)
+        tempname C
+        matrix `C' = `B'
+        RestoreEmptyEqnames `C' // replace equation name "__" by "_"
+        return matrix coefs = `C' // replace r(coefs)
         local R = rowsof(`B')
         local C = colsof(`B')
-        QuotedRowNames `B'
-        local varlist `"`value'"'
         local eqlist: roweq `B', q
         local eqlist: list clean eqlist
         UniqEqsAndDims `"`eqlist'"'
+        if "`unstack'"!="" {
+            // unstack requires equations to be tied together
+            // RerrangeEqs resets B, eqlist, eqs, eqsdims
+            RerrangeEqs `B' `"`eqlist'"' `"`eqs'"'
+        }
+        QuotedRowNames `B'
+        local varlist `"`value'"'
         MakeQuotedFullnames `"`varlist'"' `"`eqlist'"'
         local fullvarlist `"`value'"'
 *   - dropped coefs
@@ -687,7 +695,7 @@ program define estout, rclass
             local indicate`i'lbls `"`macval(value)'"'
         }
     }
-    else local eqswide "_"
+    else local eqswide "__"
 
 *Prepare coefs for tabulation
     if `R'>0 {
@@ -762,7 +770,10 @@ program define estout, rclass
                     local value: var l `eq'
                 }
             }
-            if `"`value'"'=="" local value "`eq'"
+            if `"`value'"'=="" {
+                if `"`eq'"'=="__" local value "_"
+                else              local value "`eq'"
+            }
             local eqlabels `"`macval(eqlabels)' `"`value'"'"'
         }
     }
@@ -1151,7 +1162,7 @@ program define estout, rclass
         InsertAtVariables `"`macval(eqlabelsend)'"' 2 "`ncols'" `macval(atvars2)'
         local eqlabelsend `"`macval(value)'"'
     }
-    if `"`eqswide'"'!="_" & "`eqlabelsnone'"=="" {
+    if `"`eqswide'"'!="__" & "`eqlabelsnone'"=="" {
         local hasheader 1
         local tmpbegin `"`macval(begin)'"'
         local tmpend `"`macval(end)'"'
@@ -1274,7 +1285,7 @@ program define estout, rclass
 *Write equation name/label
             if "`unstack'"=="" {
                 local eqvar: word `r' of `fullvarlist'
-                if `"`eqs'"'!="_" {
+                if `"`eqs'"'!="__" {
                     local eqrlast `"`eqr'"'
                     local eqr: word `r' of `eqlist'
                     if `"`eqr'"'!=`"`eqrlast'"' & "`eqlabelsnone'"=="" {
@@ -1362,7 +1373,7 @@ program define estout, rclass
                 if `isref' {
                     if "`unstack'"=="" {
                         local temp `"`eqr'"'
-                        if `"`temp'"'=="" local temp "_"
+                        if `"`temp'"'=="" local temp "__"
                     }
                     else local temp `"`eqswide'"'
                     GenerateRefcatRow `B' `ccols' "`var'" `"`temp'"' `"`macval(refcatlabel)'"'
@@ -1502,7 +1513,7 @@ program define estout, rclass
                     local unstackskipcoef 0
                     if "`unstack'"!="" {
                         capt local eqr: word `:word `c' of `eqsrow'' of `eqs'
-                        Rownumb rr `B' `"`eqr':`var'"'
+                        local rr = rownumb(`B', `"`eqr':`var'"')
                         if `"`eqr'"'!="" local eqvar `"`eqr':`var'"'
                         else local eqvar "`var'"
                         if `rr'>=. local unstackskipcoef 1 // local v "."
@@ -1772,7 +1783,7 @@ program define estout, rclass
     local statslabelsend `"`macval(value)'"'
     local statslabelsbegin0 `"`macval(statslabelsbegin)'"'
     local S: list sizeof statsarray
-    local eqr "_"
+    local eqr "__"
     if `hasrtfbrdr' {
         StableSubinstr begin `"`macval(rtfbeginbak)'"' "@rtfrowdefbrdr" `"`rtfrowdefbrdrt'"'
         local rtfbrdron 1
@@ -2490,6 +2501,7 @@ program _estout_getres, rclass
                 GetCoefs `bc' `seqmerge' `"`getbV'`coefs'"' // sets local hasbc
                 if `hasbc' {
                     mat coln `bc' = `getbV'`coefnms'
+                    SubstEmptyEqname `bc' // replace empty eqname "_" by "__"
                 }
             }
             local rc = _rc
@@ -2662,35 +2674,40 @@ program RenameCoefs
         mat `tmp' = `bc'[`"`eq':"',1]
         QuotedRowNames `tmp'
         local vars `"`value'"'
-        gettoken from rest : rename
-        gettoken to rest : rest
-        while (`"`from'`to'"'!="") {
+        local rest `"`rename'"'
+        while (`"`rest'"'!="") {
+            gettoken from rest : rest
+            gettoken to   rest : rest
+            if `"`from'`to'"'=="" continue
+            gettoken equ x : from, parse(:)
+            local equ: list clean equ
+            if `"`equ'"'==":" {   // case 1: ":varname"
+                local equ
+                local x: list clean x
+            }
+            else if `"`x'"'=="" { // case 2: "varname"
+                local x `"`equ'"'
+                local equ
+            }
+            else {                // case 3. "eqname:varname"
+                if `"`equ'"'=="_" local equ "__"
+                gettoken colon x : x, parse(:)
+                local x: list clean x
+            }
+            if `"`x'"'=="" {
+                di as err "invalid rename()"
+                exit 198
+            }
             if index(`"`to'"',":") | `"`to'"'=="" {
                 di as err "invalid rename()"
                 exit 198
             }
-            local hasfrom = rownumb(`tmp', `"`from'"')
-            if `hasfrom'<. {
-                local hasto = rownumb(`tmp', `"`to'"')
-                if `hasto'<. {
-                    di as err `"`to' already exists in equation; cannot rename"'
-                    exit 110
-                }
-                local colonpos = index(`"`from'"',":")
-                if index(`"`from'"',":") { // remove equation
-                    gettoken chunk from : from, parse(":") // eq
-                    gettoken chunk from : from, parse(":") // :
-                    gettoken from : from
-                    if `"`from'"'=="" {
-                        di as err "invalid rename()"
-                        exit 190
-                    }
-                }
-                local vars: subinstr local vars `"`from'"' `"`"`to'"'"', word
-                `Stata11' mat rown `tmp' = `vars'
+            if `"`equ'"'!="" {
+                if `"`equ'"'!=`"`eq'"' continue // different equation
             }
-            gettoken from rest : rest
-            gettoken to rest : rest
+            local x `"`"`x'"'"'
+            local x: list clean x
+            local vars: subinstr local vars `"`x'"' `"`"`to'"'"', word
         }
         local newnames `"`newnames'`vars' "'
     }
@@ -2980,6 +2997,24 @@ program CheckEqs
     }
     if `hasseqs'==0 local seqmerge 0
     c_local seqmerge `seqmerge'
+end
+
+program SubstEmptyEqname // replace empty equation name "_" by "__"
+    args M
+    local eqs: roweq `M', q
+    if `: list posof "_" in eqs' {
+        local eqs: subinstr local eqs `""_""' `""__""', all
+        mat roweq `M' = `eqs'
+    }
+end
+
+program RestoreEmptyEqnames // replace equation name "__" by "_"
+    args M
+    local eqs: roweq `M', q
+    if `: list posof "__" in eqs' {
+        local eqs: subinstr local eqs `""__""' `""_""', all
+        mat roweq `M' = `eqs'
+    }
 end
 
 program GetCoefs
@@ -3323,6 +3358,7 @@ program GetMarginals
             if `col'>=. | !`:list eq in meqs' {
                 mat `bc'[`i',1] = .y
                 mat `bc'[`i',2] = .y
+                mat `D'[`i',1]  = .y
             }
             else {
                 mat `bc'[`i',1] =`dfdx'[1,`col']
@@ -3417,6 +3453,7 @@ program MatchCoef
     gettoken eq x : eqx, parse(:)
     local eq: list clean eq
     if `"`eq'"'==":" {    // case 1: ":[varname]"
+        local x: list clean x
         local eq
     }
     else if `"`x'"'=="" { // case 2: "varname"
@@ -3424,6 +3461,7 @@ program MatchCoef
         local eq
     }
     else {                // case 3. "eqname:[varname]"
+        if `"`eq'"'=="_" local eq "__"
         gettoken colon x : x, parse(:)
         local x: list clean x
     }
@@ -3449,13 +3487,17 @@ end
 program ModelEqCheck
     args B eq m ccols
     tempname Bsub
-    mat `Bsub' = `B'["`eq':",(`m'-1)*`ccols'+1]
+    local a = (`m'-1)*`ccols'+1
+    local b = `a' + `ccols'-1
+    mat `Bsub' = `B'["`eq':",`a'..`b']
     local R = rowsof(`Bsub')
     local value 0
-    forv r = 1/`R' {
-        if `Bsub'[`r',1]<. {
-            local value 1
-            continue, break
+    forv c = 1/`ccols' {
+        forv r = 1/`R' {
+            if `Bsub'[`r',`c']<. {
+                local value 1
+                continue, break
+            }
         }
     }
     c_local value `value'
@@ -3747,6 +3789,7 @@ program VarInList
             }
         }
         else {
+            if substr(`"`lvar'"', 1, 2)=="_:" local lvar `"_`lvar'"'
             if inlist(`"`lvar'"',`"`var'"',`"`eqvar'"',`"`eq':"') {
                 local value `"`macval(lab)'"'
                 continue, break
@@ -3943,7 +3986,7 @@ program Order
         else local splist `"`spi'"'
         gettoken sp splist : splist
         while `"`sp'"'!="" {
-            Rownumb isp `bt' "`sp'"
+            local isp = rownumb(`bt', "`sp'")
             if `isp' >= . {
                 gettoken sp splist : splist
                 continue
@@ -3965,7 +4008,7 @@ program Order
                 else {
                     mat `bt' = `bt'[1..`=`isp'-1',1...] \ `bt'[`=`isp'+1'...,1...]
                 }
-                Rownumb isp `bt' "`sp'"
+                local isp = rownumb(`bt', "`sp'")
             }
             gettoken sp splist : splist
         }
@@ -3974,22 +4017,6 @@ program Order
     capt mat `res' = nullmat(`res') \ `bt'
     capt mat drop `b'
     capt mat rename `res' `b'
-end
-
-program Rownumb
-    // variant of rownumb() that treats "_" as a distinct equation name
-    // (rownumb() treat "_" as "any equation name")
-    args lnm M s
-    if substr(`"`s'"', 1, 2) != "_:" {
-        c_local `lnm' = rownumb(`M', `"`s'"')
-        exit
-    }
-    tempname m
-    matrix `m' = `M'[1...,1]
-    local eqs: roweq `m', q
-    local eqs: subinstr local eqs `""_""' `""__N0NE__""', all word
-    matrix roweq `m' = `eqs'
-    c_local `lnm' = rownumb(`m', `"__N0NE_`s'"')
 end
 
 prog MakeQuotedFullnames
@@ -4043,7 +4070,7 @@ prog EqReplaceCons
             gettoken eqlab eqlabels : eqlabels
         }
         local last `"`eq'"'
-        if `:list eq in deqs' | `"`eq'"'=="_" continue
+        if `:list eq in deqs' | `"`eq'"'=="__" continue
         local name: word `i' of `names'
         local isinvlabv: list posof `"`eq':`name'"' in vlabv
         if `"`name'"'=="_cons" & `isinvlabv'==0 {
@@ -4068,6 +4095,29 @@ prog UniqEqsAndDims
     local eqsdims "`eqsdims' `n'"
     c_local eqsdims: list clean eqsdims
     c_local eqs: list clean eqs
+end
+
+prog RerrangeEqs
+    args B eqlist eqs
+    local equ: list uniq eqlist
+    if `: list sizeof equ'==`: list sizeof eqs' exit // equations are in order
+    tempname C
+    foreach eq of local equ {
+        local i 0
+        foreach eqi of local eqlist {
+            local ++i
+            if `"`eq'"'!="`eqi'" continue
+            mat `C' = nullmat(`C') \ `B'[`i',1...]
+        }
+    }
+    matrix drop `B'
+    matrix rename `C' `B'
+    local eqlist: roweq `B', q
+    local eqlist: list clean eqlist
+    UniqEqsAndDims `"`eqlist'"'
+    c_local eqlist  `"`eqlist'"'
+    c_local eqs     `"`eqs'"'
+    c_local eqsdims `"`eqsdims'"'
 end
 
 prog InsertAtCols
@@ -4161,7 +4211,7 @@ prog IsInModels
         }
         c_local value `"`macval(lbls)'"'
         if `"`unstack'"'!="" {
-            c_local eqs "_"
+            c_local eqs "__"
         }
         exit
     }
@@ -4237,7 +4287,7 @@ prog PrepareRefcat
     gettoken coef rest : 1
     gettoken name rest : rest
     while `"`macval(coef)'"'!="" {
-        local coefs `"`coefs'`coef' "'
+        local coefs `"`coefs'`"`coef'"' "'
         local names `"`macval(names)'`"`macval(name)'"' "'
         gettoken coef rest : rest
         gettoken name rest : rest
@@ -4383,15 +4433,17 @@ prog ExpandEqVarlist
     if _rc==0 {
         local eqs: roweq `B', q
     }
-    else local eqs "_"
+    else local eqs "__"
     local ueqs: list uniq eqs
     while `"`list'"'!="" {
 // get next element
+        local eq0
         gettoken eqx list : list
 // separate eq and x
         gettoken eq x : eqx, parse(:)
         local eq: list clean eq
         if `"`eq'"'==":" {    // case 1: ":[varname]"
+            local x: list clean x
             local eq
         }
         else if `"`x'"'=="" { // case 2: "varname"
@@ -4399,6 +4451,8 @@ prog ExpandEqVarlist
             local eq
         }
         else {                // case 3. "eqname:[varname]"
+            local eq0 `"`eq'"' // eq specified by user
+            if `"`eq'"'=="_" local eq "__"
             gettoken colon x : x, parse(:)
             local x: list clean x
         }
@@ -4415,7 +4469,7 @@ prog ExpandEqVarlist
             }
             if `"`eqmatch'"'=="" & "`relax'"=="" {
                 if !("`append'"!="" & `"`x'"'!="") {
-                    di as err `"equation `eq' not found"'
+                    di as err `"equation `eq0' not found"'
                     exit 111
                 }
             }
@@ -4442,7 +4496,7 @@ prog ExpandEqVarlist
             }
             if `"`vlist'"'=="" {
                 if "`append'"!="" {
-                    local appendlist `"`appendlist' `"`x'"'"'
+                    local appendlist `"`appendlist' `"__:`x'"'"'
                     local value `"`value' `"`x'"'"'
                 }
                 else if "`relax'"=="" {
@@ -4472,7 +4526,7 @@ prog ExpandEqVarlist
                 local value `"`value' `"`eq':`x'"'"'
             }
             else if "`relax'"=="" {
-                di as err `"coefficient `eq':`x' not found"'
+                di as err `"coefficient `eq0':`x' not found"'
                 exit 111
             }
         }
@@ -4698,6 +4752,7 @@ program MatrixMode, rclass
         gettoken rname rnames : rnames
         gettoken eq eqs : eqs
     }
+    SubstEmptyEqname `bc' // replace empty eqname "_" by "__"
     if `"`rename'"'!="" {
         local rename : subinstr local rename "," "", all
         RenameCoefs `bc' `"`rename'"'
@@ -4857,7 +4912,7 @@ void estout_mat_capp(string scalar m1, string rowvector m)
 end
 
 if c(stata_version)<14 exit
-version 11
+version 14
 mata:
 mata set matastrict on
 

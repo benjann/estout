@@ -28,6 +28,26 @@ Installation from GitHub:
 
 Main changes:
 
+    25mar2022
+    estout.ado (3.30)
+    - estout now internally renames unnamed equations to "__" (rather than Stata's
+      default "_"); this fixes a number of issues (e.g. the issues addressed in 
+      v3.25 and v3.26 using a different approach) and it also gives the user more
+      control when addressing coefficients in options such as keep(), drop(),
+      rename() etc.; specifying "_:coef" (or "__:coef") now specifically refers
+      to "coef" in unnamed equations; in the old behavior "_:coef" addressed
+      "coef" in any equation (i.e. same as specifying "coef" without "_:") and there
+      was no possibility to address "coef" in unnamed equations only
+    - rename() did not work with names containing spaces; this is fixed
+    - refcat() did not work with names containing spaces; this is fixed
+    - -unstack- produced erroneous results if equations were not in order; this
+      could happen if order() was used in a way such that the coefficients
+      from an equation were divided into multiple sets interrupted by other
+      equations; the problem is now fixed by enforcing ordered equations in case
+      of -unstack-
+    - when using -unstack-, models for which the first element of cells() was
+      not available were suppressed; this is fixed
+
     24mar2022
     estout.ado (3.29)
     - the unicode translator introduced in 3.27 chopped lines after 200 characters;
