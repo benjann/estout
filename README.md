@@ -28,6 +28,12 @@ Installation from GitHub:
 
 Main changes:
 
+    26apr2022
+    estout.ado (3.31)
+    - when writing RTF format, the horizontal rule between table header and table
+      body was missing if the table body contained only a single physical row; this
+      is fixed 
+
     25mar2022
     estout.ado (3.30)
     - estout now internally renames unnamed equations to "__" (rather than Stata's

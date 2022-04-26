@@ -1,4 +1,4 @@
-*! version 3.30  25mar2022  Ben Jann
+*! version 3.31  26apr2022  Ben Jann
 
 program define estout, rclass
     version 8.2
@@ -1464,7 +1464,18 @@ program define estout, rclass
             else local varl
             if `hasrtfbrdr' & `r'==`RI' & !(`isref' & `"`refcatbelow'"'!="") {
                 if `nrvblock'==1 {
-                    StableSubinstr tmpbegin `"`macval(rtfbeginbak)'"' "@rtfrowdefbrdr" `"`rtfrowdefbrdrb'"'
+                    if `rtfbrdron' {
+                        // special case: still in first physical row of table
+                        // body; this means that the table body only has a single
+                        // physical row => need line at top and bottom
+                        StableSubinstr tmpbegin `"`macval(tmpbegin)'"' /*
+                            */ "\clbrdrt\brdrw10\brdrs" /*
+                            */ "\clbrdrt\brdrw10\brdrs\clbrdrb\brdrw10\brdrs" all
+                    }
+                    else {
+                        StableSubinstr tmpbegin `"`macval(rtfbeginbak)'"' /*
+                            */ "@rtfrowdefbrdr" `"`rtfrowdefbrdrb'"'
+                    }
                     local rtfbrdron 1
                 }
             }
