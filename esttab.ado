@@ -1,4 +1,4 @@
-*! version 2.1.0  19may2021  Ben Jann
+*! version 2.1.1  10jun2022  Ben Jann
 *! wrapper for estout
 
 program define esttab
@@ -201,7 +201,7 @@ program define esttab
     local html_pvallab        `"<i>p</i>-values"'
     local html_cilab          `"\`level'% confidence intervals"'
 // - tex
-    local tex_open0           `""% `cdate' `ctime'" \documentclass{article} \`texpkgs' \`=cond("\`longtable'"!="","\usepackage{longtable}","")' \begin{document} """'
+    local tex_open0           `""% `cdate' `ctime'" `"\documentclass\`texclass'"' \`texpkgs' \`=cond("\`longtable'"!="","\usepackage{longtable}","")' \begin{document} """'
     local tex_close0          `""" \end{document} """'
     local tex_open            `"`"\`=cond("\`longtable'"=="", "\begin{table}[htbp]\centering", "{")'"'"'
     local tex_close           `"`"\`=cond("\`longtable'"=="", "\end{table}", "}")'"'"'
@@ -233,7 +233,7 @@ program define esttab
     local tex_substitute      `"_ \_ "\_cons " \_cons"'
     local tex_interaction     `"" $\times$ ""'
 // - booktabs
-    local booktabs_open0      `""% `cdate' `ctime'" \documentclass{article} \`texpkgs' \usepackage{booktabs} \`=cond("\`longtable'"!="","\usepackage{longtable}","")' \begin{document} """'
+    local booktabs_open0      `""% `cdate' `ctime'" `"\documentclass\`texclass'"' \`texpkgs' \usepackage{booktabs} \`=cond("\`longtable'"!="","\usepackage{longtable}","")' \begin{document} """'
     local booktabs_close0     `"`macval(tex_close0)'"'
     local booktabs_open       `"`macval(tex_open)'"'
     local booktabs_close      `"`macval(tex_close)'"'
@@ -330,6 +330,7 @@ program define esttab
      smcl FIXed tab csv SCsv rtf HTMl tex BOOKTabs md mmd ///
      Fragment ///
      page PAGE2(str) ///
+     STANDalone STANDalone2(str asis) ///
      ALIGNment(str asis) ///
      width(str asis) ///
      fonttbl(str) ///
@@ -351,7 +352,14 @@ program define esttab
     }
     NotBothAllowed "`staraux'" `nostar'
     if `"`macval(mtitles2)'"'!="" NotBothAllowed "mtitles" `nomtitles'
-    if `"`page2'"'!=""   local page page
+    if `"`standalone2'"'!="" local standalone standalone
+    if "`standalone'"!="" {
+        if      `"`standalone2'"'==""     local standalone2 "[varwidth]"
+        else if `"`standalone2'"'==`""""' local standalone2
+        else                              local standalone2 `"[`standalone2']"'
+        local page page
+    }
+    if `"`page2'"'!="" local page page
     NotBothAllowed "`fragment'" `page'
     if `"`pfmt'"'!=""    local p p
     if `"`zfmt'"'!=""    local z z
@@ -739,6 +747,9 @@ program define esttab
             local rtf_fonttbl `"`fonttbl'"'
         }
         if "`page'"!="" {
+            local texclass "{article}"
+            if "`standalone'"!="" local texclass "`standalone2'{standalone}"
+            else                  local texclass "{article}"
             if `"`page2'"'!="" {
                 local texpkgs `""\usepackage{`page2'}""'
             }
@@ -854,7 +865,7 @@ program define esttab
         else {
             local closing `"`macval(closing)' ``mode'_close'"'
         }
-        if "`page'"!="" {
+        if "`page'`standalone'"!="" {
             local closing `"`macval(closing)' ``mode'_close0'"'
         }
         local toprule    `"``mode'_toprule'"'

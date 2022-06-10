@@ -1,5 +1,5 @@
 {smcl}
-{* 24mar2022}{...}
+{* 10jun2022}{...}
 {hi:help esttab}{right:also see: {helpb estout}, {helpb eststo}, {helpb estadd}, {helpb estpost}}
 {right: {browse "http://repec.sowi.unibe.ch/stata/estout/"}}
 {hline}
@@ -130,6 +130,8 @@ suppress table opening and closing (LaTeX, HTML)
 whether to use a float environment or not (LaTeX)
       {cmd:page}[{cmd:(}{it:packages}{cmd:)}]{col 26}{...}
 add page opening and closing (LaTeX, HTML)
+      {cmdab:stand:alone}[{cmd:(}{it:opts}{cmd:)}]{col 26}{...}
+use class {cmd:standalone} rather than {cmd:article} (LaTeX)
       {cmdab:align:ment(}{it:string}{cmd:)}{col 26}{...}
 set alignment within columns (LaTeX, HTML, RTF)
       {cmdab:width(}{it:string}{cmd:)}{col 26}{...}
@@ -572,6 +574,13 @@ document. Specifying {it:packages} in parentheses causes
 {cmd:\usepackage{c -(}}{it:packages}{cmd:{c )-}} to be added to the
 preamble of the LaTeX document (note that the {it:booktabs} package
 is automatically loaded if {cmd:booktabs} is specified).
+
+{p 4 8 2}
+{cmd:standalone}[{cmd:(}{it:opts}{cmd:)}] implies {cmd:page} 
+and uses {cmd:\documentclass[}{it:opts}{cmd:]{c -(}standlone{c )-}}
+instead of {cmd:\documentclass{c -(}article{c )-}} in the LaTeX header (see 
+{browse "http://ctan.org/pkg/standalone"}). The default for {it:opts}
+is {cmd:varwidth}; type {cmd:standalone("")} to suppress {cmd:[}{it:opts}{cmd:]}.
 
 {p 4 8 2}
 {cmd:alignment(}{it:string}{cmd:)} may be used to specify the
