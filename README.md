@@ -28,6 +28,16 @@ Installation from GitHub:
 
 Main changes:
 
+    10feb2023
+    estpost.ado (1.2.2)
+    - option elabels() in -estpost correlate- now stores additional info in
+      e(labels) and e(eqlabels) (if option -matrix- has specified); option -nolabel-
+      changes behavior of -elabels()-
+  
+    10jun2022
+    esttab.ado (2.1.1)
+    - option -standalone- added
+  
     26apr2022
     estout.ado (3.31)
     - when writing RTF format, the horizontal rule between table header and table

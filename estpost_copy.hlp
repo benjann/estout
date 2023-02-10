@@ -1141,33 +1141,33 @@ in {cmd:e(labels)} and {cmd:e(eqlabels)}.
 
 {* begin example correlate }{...}
         {com}. sysuse auto, clear
-        {txt}(1978 automobile data)
-        
-        {com}. estpost correlate price mpg turn foreign, matrix elabels(( ))
-        
-        {txt}{ralign 12:} {c |} {ralign 9:e(b)}  {ralign 9:e(rho)}  {ralign 9:e(p)}  {ralign 9:e(count)} 
+        {txt}(1978 Automobile Data)
+
+        {com}. estpost correlate price mpg turn foreign, matrix
+
+        {txt}{ralign 12:} {c |} {ralign 9:e(b)}  {ralign 9:e(rho)}  {ralign 9:e(p)}  {ralign 9:e(count)}
         {hline 13}{c   +}{hline 11}{hline 11}{hline 11}{hline 11}
         {res:{lalign 13:price}}{c |}{space 11}{space 11}{space 11}{space 11}
-        {ralign 12:price} {c |} {ralign 9:{res:{sf:        1}}}  {ralign 9:{res:{sf:        1}}}  {ralign 9:{res:{sf:{space 9}}}}  {ralign 9:{res:{sf:       74}}} 
-        {ralign 12:mpg} {c |} {ralign 9:{res:{sf:-.4685967}}}  {ralign 9:{res:{sf:-.4685967}}}  {ralign 9:{res:{sf: .0000255}}}  {ralign 9:{res:{sf:       74}}} 
-        {ralign 12:turn} {c |} {ralign 9:{res:{sf: .3096174}}}  {ralign 9:{res:{sf: .3096174}}}  {ralign 9:{res:{sf: .0072662}}}  {ralign 9:{res:{sf:       74}}} 
-        {ralign 12:foreign} {c |} {ralign 9:{res:{sf: .0487195}}}  {ralign 9:{res:{sf: .0487195}}}  {ralign 9:{res:{sf: .6801851}}}  {ralign 9:{res:{sf:       74}}} 
+        {ralign 12:price} {c |} {ralign 9:{res:{sf:        1}}}  {ralign 9:{res:{sf:        1}}}  {ralign 9:{res:{sf:{space 9}}}}  {ralign 9:{res:{sf:       74}}}
+        {ralign 12:mpg} {c |} {ralign 9:{res:{sf:-.4685967}}}  {ralign 9:{res:{sf:-.4685967}}}  {ralign 9:{res:{sf: .0000255}}}  {ralign 9:{res:{sf:       74}}}
+        {ralign 12:turn} {c |} {ralign 9:{res:{sf: .3096174}}}  {ralign 9:{res:{sf: .3096174}}}  {ralign 9:{res:{sf: .0072662}}}  {ralign 9:{res:{sf:       74}}}
+        {ralign 12:foreign} {c |} {ralign 9:{res:{sf: .0487195}}}  {ralign 9:{res:{sf: .0487195}}}  {ralign 9:{res:{sf: .6801851}}}  {ralign 9:{res:{sf:       74}}}
         {res:{lalign 13:mpg}}{c |}{space 11}{space 11}{space 11}{space 11}
-        {ralign 12:mpg} {c |} {ralign 9:{res:{sf:        1}}}  {ralign 9:{res:{sf:        1}}}  {ralign 9:{res:{sf:{space 9}}}}  {ralign 9:{res:{sf:       74}}} 
-        {ralign 12:turn} {c |} {ralign 9:{res:{sf:-.7191863}}}  {ralign 9:{res:{sf:-.7191863}}}  {ralign 9:{res:{sf: 5.30e-13}}}  {ralign 9:{res:{sf:       74}}} 
-        {ralign 12:foreign} {c |} {ralign 9:{res:{sf: .3933974}}}  {ralign 9:{res:{sf: .3933974}}}  {ralign 9:{res:{sf: .0005254}}}  {ralign 9:{res:{sf:       74}}} 
+        {ralign 12:mpg} {c |} {ralign 9:{res:{sf:        1}}}  {ralign 9:{res:{sf:        1}}}  {ralign 9:{res:{sf:{space 9}}}}  {ralign 9:{res:{sf:       74}}}
+        {ralign 12:turn} {c |} {ralign 9:{res:{sf:-.7191863}}}  {ralign 9:{res:{sf:-.7191863}}}  {ralign 9:{res:{sf: 5.30e-13}}}  {ralign 9:{res:{sf:       74}}}
+        {ralign 12:foreign} {c |} {ralign 9:{res:{sf: .3933974}}}  {ralign 9:{res:{sf: .3933974}}}  {ralign 9:{res:{sf: .0005254}}}  {ralign 9:{res:{sf:       74}}}
         {res:{lalign 13:turn}}{c |}{space 11}{space 11}{space 11}{space 11}
-        {ralign 12:turn} {c |} {ralign 9:{res:{sf:        1}}}  {ralign 9:{res:{sf:        1}}}  {ralign 9:{res:{sf:{space 9}}}}  {ralign 9:{res:{sf:       74}}} 
-        {ralign 12:foreign} {c |} {ralign 9:{res:{sf:-.6310965}}}  {ralign 9:{res:{sf:-.6310965}}}  {ralign 9:{res:{sf: 1.66e-09}}}  {ralign 9:{res:{sf:       74}}} 
+        {ralign 12:turn} {c |} {ralign 9:{res:{sf:        1}}}  {ralign 9:{res:{sf:        1}}}  {ralign 9:{res:{sf:{space 9}}}}  {ralign 9:{res:{sf:       74}}}
+        {ralign 12:foreign} {c |} {ralign 9:{res:{sf:-.6310965}}}  {ralign 9:{res:{sf:-.6310965}}}  {ralign 9:{res:{sf: 1.66e-09}}}  {ralign 9:{res:{sf:       74}}}
         {res:{lalign 13:foreign}}{c |}{space 11}{space 11}{space 11}{space 11}
-        {ralign 12:foreign} {c |} {ralign 9:{res:{sf:        1}}}  {ralign 9:{res:{sf:        1}}}  {ralign 9:{res:{sf:{space 9}}}}  {ralign 9:{res:{sf:       74}}} 
-        
+        {ralign 12:foreign} {c |} {ralign 9:{res:{sf:        1}}}  {ralign 9:{res:{sf:        1}}}  {ralign 9:{res:{sf:{space 9}}}}  {ralign 9:{res:{sf:       74}}}
+
         {com}. esttab ., not unstack compress noobs
         {res}
         {txt}{hline 62}
-        {txt}                 (1)                                          
-        {txt}                                                              
-        {txt}               price          mpg         turn      foreign   
+        {txt}                 (1)
+        {txt}
+        {txt}               price          mpg         turn      foreign
         {txt}{hline 62}
         {txt}price     {res}         1                                          {txt}
         {txt}mpg       {res}    -0.469***         1                             {txt}
@@ -1175,48 +1175,35 @@ in {cmd:e(labels)} and {cmd:e(eqlabels)}.
         {txt}foreign   {res}    0.0487        0.393***    -0.631***         1   {txt}
         {txt}{hline 62}
         {txt}* p<0.05, ** p<0.01, *** p<0.001
-        
-        {com}. esttab ., not unstack compress noobs nonum nomtitle ///
-        >     varwidth(21) varlabels(`e(labels)') eqlabels(`e(eqlabels)')
-        {res}
-        {txt}{hline 73}
-        {txt}                            (1)          (2)          (3)          (4)   
-        {txt}{hline 73}
-        {txt}(1) Price            {res}         1                                          {txt}
-        {txt}(2) Mileage (mpg)    {res}    -0.469***         1                             {txt}
-        {txt}(3) Turn circle (ft.){res}     0.310**     -0.719***         1                {txt}
-        {txt}(4) Car origin       {res}    0.0487        0.393***    -0.631***         1   {txt}
-        {txt}{hline 73}
-        {txt}* p<0.05, ** p<0.01, *** p<0.001
-        
+
         {com}. bysort foreign: eststo: ///
         >     estpost correlate price turn weight rep78, listwise
-        
+
         {txt}{hline 60}
         -> Domestic
-        
-        {ralign 12:price} {c |} {ralign 9:e(b)}  {ralign 9:e(rho)}  {ralign 9:e(p)}  {ralign 9:e(count)} 
+
+        {ralign 12:price} {c |} {ralign 9:e(b)}  {ralign 9:e(rho)}  {ralign 9:e(p)}  {ralign 9:e(count)}
         {hline 13}{c   +}{hline 11}{hline 11}{hline 11}{hline 11}
-        {ralign 12:turn} {c |} {ralign 9:{res:{sf: .4328091}}}  {ralign 9:{res:{sf: .4328091}}}  {ralign 9:{res:{sf: .0021229}}}  {ralign 9:{res:{sf:       48}}} 
-        {ralign 12:weight} {c |} {ralign 9:{res:{sf: .6864719}}}  {ralign 9:{res:{sf: .6864719}}}  {ralign 9:{res:{sf: 7.19e-08}}}  {ralign 9:{res:{sf:       48}}} 
-        {ralign 12:rep78} {c |} {ralign 9:{res:{sf:-.0193249}}}  {ralign 9:{res:{sf:-.0193249}}}  {ralign 9:{res:{sf: .8962741}}}  {ralign 9:{res:{sf:       48}}} 
+        {ralign 12:turn} {c |} {ralign 9:{res:{sf: .4328091}}}  {ralign 9:{res:{sf: .4328091}}}  {ralign 9:{res:{sf: .0021229}}}  {ralign 9:{res:{sf:       48}}}
+        {ralign 12:weight} {c |} {ralign 9:{res:{sf: .6864719}}}  {ralign 9:{res:{sf: .6864719}}}  {ralign 9:{res:{sf: 7.19e-08}}}  {ralign 9:{res:{sf:       48}}}
+        {ralign 12:rep78} {c |} {ralign 9:{res:{sf:-.0193249}}}  {ralign 9:{res:{sf:-.0193249}}}  {ralign 9:{res:{sf: .8962741}}}  {ralign 9:{res:{sf:       48}}}
         ({res}est1{txt} stored)
-        
+
         {hline 60}
         -> Foreign
-        
-        {ralign 12:price} {c |} {ralign 9:e(b)}  {ralign 9:e(rho)}  {ralign 9:e(p)}  {ralign 9:e(count)} 
+
+        {ralign 12:price} {c |} {ralign 9:e(b)}  {ralign 9:e(rho)}  {ralign 9:e(p)}  {ralign 9:e(count)}
         {hline 13}{c   +}{hline 11}{hline 11}{hline 11}{hline 11}
-        {ralign 12:turn} {c |} {ralign 9:{res:{sf: .5102425}}}  {ralign 9:{res:{sf: .5102425}}}  {ralign 9:{res:{sf: .0181155}}}  {ralign 9:{res:{sf:       21}}} 
-        {ralign 12:weight} {c |} {ralign 9:{res:{sf: .8315886}}}  {ralign 9:{res:{sf: .8315886}}}  {ralign 9:{res:{sf: 2.99e-06}}}  {ralign 9:{res:{sf:       21}}} 
-        {ralign 12:rep78} {c |} {ralign 9:{res:{sf: .1797879}}}  {ralign 9:{res:{sf: .1797879}}}  {ralign 9:{res:{sf: .4354917}}}  {ralign 9:{res:{sf:       21}}} 
+        {ralign 12:turn} {c |} {ralign 9:{res:{sf: .5102425}}}  {ralign 9:{res:{sf: .5102425}}}  {ralign 9:{res:{sf: .0181155}}}  {ralign 9:{res:{sf:       21}}}
+        {ralign 12:weight} {c |} {ralign 9:{res:{sf: .8315886}}}  {ralign 9:{res:{sf: .8315886}}}  {ralign 9:{res:{sf: 2.99e-06}}}  {ralign 9:{res:{sf:       21}}}
+        {ralign 12:rep78} {c |} {ralign 9:{res:{sf: .1797879}}}  {ralign 9:{res:{sf: .1797879}}}  {ralign 9:{res:{sf: .4354917}}}  {ralign 9:{res:{sf:       21}}}
         ({res}est2{txt} stored)
-        
+
         {com}. esttab est1 est2, not mtitles
         {res}
         {txt}{hline 44}
-        {txt}                      (1)             (2)   
-        {txt}                 Domestic         Foreign   
+        {txt}                      (1)             (2)
+        {txt}                 Domestic         Foreign
         {txt}{hline 44}
         {txt}turn        {res}        0.433**         0.510*  {txt}
         {txt}weight      {res}        0.686***        0.832***{txt}

@@ -1,4 +1,4 @@
-*! version 1.2.1  19may2021  Ben Jann
+*! version 1.2.2  10feb2023  Ben Jann
 * 1. estpost
 * 2. estpost_summarize
 * 3. estpost_tabulate
@@ -841,8 +841,8 @@ prog estpost_correlate, eclass
 
     // syntax
     syntax varlist [if] [in] [aw fw iw pw] [, ESample Quietly ///
-        LISTwise CASEwise ///
-        Matrix noHalf Print(real 1) /*Covariance*/ Bonferroni SIDak ]
+        LISTwise CASEwise Matrix noHalf noLabel ELabels ELabels2(str asis) ///
+        Print(real 1) /*Covariance*/ Bonferroni SIDak ]
     if "`casewise'"!="" local listwise listwise
     if "`bonferroni'"!="" & "`sidak'"!="" {
         di as err "only one of bonferroni and sidak allowed"
@@ -927,7 +927,7 @@ prog estpost_correlate, eclass
     mat coln `pval' = `colnames'
     local vce `"`e(vce)'"'          // from last -regress- call
     local vcetype `"`e(vcetype)'"'
-
+    
     // display
     if "`quietly'"=="" {
         tempname res
@@ -960,6 +960,29 @@ prog estpost_correlate, eclass
     eret matrix count = `count'
     eret matrix p = `pval'
     eret matrix rho = `rho'
+    // additional labels in case of matrix
+    if `"`matrix'"'=="" exit
+    if `"`elabels'`elabels2'"'=="" exit
+    gettoken lhs rhs : elabels2
+    gettoken rhs     : rhs
+    local space
+    local vlbls
+    local eqlbls
+    local i 0
+    foreach v of local varlist {
+        local ++i
+        local num `"`lhs'`i'`rhs'"'
+        local eqlbls `"`eqlbls'`space'`"`num'"'"'
+        local space " "
+        local lbl
+        if "`label'"=="" {
+            local lbl: var lab `v'
+        }
+        if `"`lbl'"'=="" local lbl "`v'"
+        local vlbls `vlbls' `v' `"`num' `lbl'"'
+    }
+    eret local labels `"`vlbls'"'
+    eret local eqlabels `"`eqlbls'"'
 end
 
 
