@@ -28,12 +28,17 @@ Installation from GitHub:
 
 Main changes:
 
+    09apr2023
+    estout.ado (3.32); ettab.ado (2.1.2)
+    - Windows network paths starting with a double backslash (\\) did not work; this
+      is fixed
+
     10feb2023
     estpost.ado (1.2.2)
     - option elabels() in -estpost correlate- now stores additional info in
       e(labels) and e(eqlabels) (if option -matrix- has specified); option -nolabel-
       changes behavior of -elabels()-
-  
+
     10jun2022
     esttab.ado (2.1.1)
     - option -standalone- added

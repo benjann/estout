@@ -1,4 +1,4 @@
-*! version 3.31  26apr2022  Ben Jann
+*! version 3.32  09apr2023  Ben Jann
 
 program define estout, rclass
     version 8.2
@@ -214,7 +214,7 @@ program define estout, rclass
 
 *Defaults
     if "`defaults'"=="esttab"               local defaults "tab"
-    if "`defaults'"=="" & `"`using'"'==""   local defaults "smcl"
+    if "`defaults'"=="" & `"`macval(using)'"'=="" local defaults "smcl"
     if inlist("`defaults'", "", "smcl", "tab", "fixed", "tex", "html","mmd")  {
         local varwidthfactor = (1 + ("`eqlabelsmerge'"!="" & "`unstack'"=="")*.5)
         if inlist("`defaults'", "", "tab") {
@@ -335,8 +335,8 @@ program define estout, rclass
             file close `file'
         }
     }
-    if "`notype'"=="" & `"`using'"'=="" local type type
-    if "`smcltags'"=="" & "`noasis'"=="" local asis asis
+    if "`notype'"=="" & `"`macval(using)'"'=="" local type type
+    if "`smcltags'"=="" & "`noasis'"==""        local asis asis
     if "`asis'"!="" local asis "_asis"
     if "`smclrules'"!="" & "`nosmclmidrules'"=="" local smclmidrules smclmidrules
     if "`smclmidrules'"!="" & "`nosmcleqrules'"=="" local smcleqrules smcleqrules
@@ -951,7 +951,7 @@ program define estout, rclass
 * check begin, delimiter, end
     tempfile tfile
     tempname file
-    file open `file' using `"`tfile'"', write text
+    file open `file' using `"`macval(tfile)'"', write text
     foreach opt in begin delimiter end {
         capture file write `file' `macval(`opt')'
         if _rc {
@@ -993,10 +993,10 @@ program define estout, rclass
     if `labcol2width'>0 local fmt_l2 "%~`labcol2width's"
     if "`mgroupsspan'`mlabelsspan'`eqlabelsspan'`collabelsspan'"!="" {
         if `modelwidthzero'==0 {
-            file open `file' using `"`tfile'"', write text replace
+            file open `file' using `"`macval(tfile)'"', write text replace
             file write `file' `macval(delimiter)'
             file close `file'
-            file open `file' using `"`tfile'"', read text
+            file open `file' using `"`macval(tfile)'"', read text
             file read `file' delwidth
             file close `file'
             local delwidth = `length'(`"`macval(delwidth)'"')
@@ -1013,7 +1013,7 @@ program define estout, rclass
     local atvars3 `"`"`macval(title)'"' `"`macval(note)'"' `"`macval(discrete)'`macval(discrete2)'"' `"`macval(starlegend)'"'"'
 
 *Open output file
-    file open `file' using `"`tfile'"', write text replace
+    file open `file' using `"`macval(tfile)'"', write text replace
 
 *Write prehead
     if `"`macval(prehead)'"'!="" {
@@ -1983,16 +1983,16 @@ program define estout, rclass
     if `"`bottomfile'"'!="" {
         confirm file `"`bottomfile'"'
     }
-    if `"`using'"'!="" {
+    if `"`macval(using)'"'!="" {
         tempname file2
-        file open `file2' `using', write text `replace' `append'
+        file open `file2' `macval(using)', write text `replace' `append'
     }
     if "`type'"!="" di as res ""
     if `"`topfile'"'!="" {
         file open `file' using `"`topfile'"', read text
         file read `file' temp
         while r(eof)==0 {
-            if `"`using'"'!="" {
+            if `"`macval(using)'"'!="" {
                 file write `file2' `"`macval(temp)'"' _n
             }
             if "`type'"!="" {
@@ -2005,7 +2005,7 @@ program define estout, rclass
         }
         file close `file'
     }
-    file open `file' using `"`tfile'"', read text
+    file open `file' using `"`macval(tfile)'"', read text
     file read `file' temp
     while r(eof)==0 {
         forv s = 1(2)`S' {
@@ -2018,7 +2018,7 @@ program define estout, rclass
         if `rtfenc' {
             mata: estout_rtfencode("temp")
         }
-        if `"`using'"'!="" {
+        if `"`macval(using)'"'!="" {
             file write `file2' `"`macval(temp)'"' _n
         }
         if "`type'"!="" {
@@ -2034,7 +2034,7 @@ program define estout, rclass
         file open `file' using `"`bottomfile'"', read text
         file read `file' temp
         while r(eof)==0 {
-            if `"`using'"'!="" {
+            if `"`macval(using)'"'!="" {
                 file write `file2' `"`macval(temp)'"' _n
             }
             if "`type'"!="" {
@@ -2047,12 +2047,12 @@ program define estout, rclass
         }
         file close `file'
     }
-    if `"`using'"'!="" {
+    if `"`macval(using)'"'!="" {
         file close `file2'
         gettoken junk using0 : using
-        return local fn `using0'
+        return local fn `macval(using0)'
         if "`outfilenoteoff'"=="" {
-            di as txt `"(output written to {browse `using0'})"'
+            di as txt `"(output written to {browse `macval(using0)'})"'
         }
     }
 end
