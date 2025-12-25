@@ -328,7 +328,7 @@ program define esttab
      COMpress ///
      plain ///
      smcl FIXed tab csv SCsv rtf HTMl tex BOOKTabs md mmd ///
-     Fragment ///
+     Fragment SEMantic ///
      page PAGE2(str) ///
      STANDalone STANDalone2(str asis) ///
      ALIGNment(str asis) ///
@@ -811,6 +811,10 @@ program define esttab
         else {
             local opening `"`macval(opening)' ``mode'_open2'"'
         }
+        // Add <thead> for semantic HTML
+        if "`mode0'"=="html" & "`semantic'"!="" {
+            local opening `"`macval(opening)' "<thead>""'
+        }
         if "`mode0'"=="html" {
             local brr
             foreach chunk of local thenote {
@@ -863,6 +867,10 @@ program define esttab
             }
         }
         else {
+            // Add </tbody> for semantic HTML before </table>
+            if "`mode0'"=="html" & "`semantic'"!="" {
+                local closing `"`macval(closing)' "</tbody>""'
+            }
             local closing `"`macval(closing)' ``mode'_close'"'
         }
         if "`page'`standalone'"!="" {
@@ -884,6 +892,10 @@ program define esttab
         else if `"`gaps'"'!="" {
             local opening `"`macval(opening)' `macval(topgap)'"'
         }
+        // Add <thead> for semantic HTML in fragment mode (non-fragment handled above)
+        if "`mode0'"=="html" & "`semantic'"!="" & "`fragment'"!="" {
+            local opening `"`macval(opening)' "<thead>""'
+        }
         SaveRetok `macval(opening)'
         local opening `"`macval(value)'"'
         if `"`macval(opening)'"'!="" {
@@ -892,11 +904,19 @@ program define esttab
     }
 // - compose posthead()
     if `"`macval(posthead)'"'=="" {
+        local posthead_content
         if `"`lines'"'!="" {
-            local posthead `"posthead(`macval(midrule)')"'
+            local posthead_content `"`macval(midrule)'"'
         }
         else if `"`gaps'"'!="" {
-            local posthead `"posthead(`macval(midgap)')"'
+            local posthead_content `"`macval(midgap)'"'
+        }
+        // Add </thead><tbody> for semantic HTML
+        if "`mode0'"=="html" & "`semantic'"!="" {
+            local posthead_content `"`macval(posthead_content)' "</thead>" "<tbody>""'
+        }
+        if `"`macval(posthead_content)'"'!="" {
+            local posthead `"posthead(`macval(posthead_content)')"'
         }
     }
 // - compose prefoot()
@@ -916,6 +936,10 @@ program define esttab
         }
         else if `"`gaps'"'!="" {
             local closing `"`macval(bottomgap)' `macval(closing)'"'
+        }
+        // Add </tbody> for semantic HTML in fragment mode (non-fragment handled above)
+        if "`mode0'"=="html" & "`semantic'"!="" & "`fragment'"!="" {
+            local closing `"`macval(closing)' "</tbody>""'
         }
         SaveRetok `macval(closing)'
         local closing `"`macval(value)'"'
