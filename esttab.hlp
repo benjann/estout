@@ -1,5 +1,5 @@
 {smcl}
-{* 10jun2022}{...}
+{* 25mar2026}{...}
 {hi:help esttab}{right:also see: {helpb estout}, {helpb eststo}, {helpb estadd}, {helpb estpost}}
 {right: {browse "http://repec.sowi.unibe.ch/stata/estout/"}}
 {hline}
@@ -121,21 +121,23 @@ suppress/add notes in the table footer
 add lines at the end of the table
 
     {help esttab##format:Document format}
-      {cmd:smcl} | {cmdab:fix:ed} | {cmd:tab} | {cmd:csv} | {cmdab:sc:sv} | {cmd:rtf} | {cmdab:htm:l} | {cmd:tex} | {cmdab:bookt:abs} | {cmdab:md}
+      {cmd:smcl} | {cmdab:fix:ed} | {cmd:tab} | {cmd:csv} | {cmdab:sc:sv} | {cmd:rtf} | {cmdab:htm:l} | {cmd:html5} | {cmd:tex} | {cmdab:bookt:abs} | {cmdab:md}
       {col 26}{...}
 set the document format ({cmd:smcl} is the default)
       {cmdab:f:ragment}{col 26}{...}
 suppress table opening and closing (LaTeX, HTML)
       [{cmd:no}]{cmd:float}{col 26}{...}
 whether to use a float environment or not (LaTeX)
-      {cmd:page}[{cmd:(}{it:packages}{cmd:)}]{col 26}{...}
+      {cmd:page}[{cmd:(}{it:string}{cmd:)}]{col 26}{...}
 add page opening and closing (LaTeX, HTML)
       {cmdab:stand:alone}[{cmd:(}{it:opts}{cmd:)}]{col 26}{...}
 use class {cmd:standalone} rather than {cmd:article} (LaTeX)
       {cmdab:align:ment(}{it:string}{cmd:)}{col 26}{...}
 set alignment within columns (LaTeX, HTML, RTF)
-      {cmdab:width(}{it:string}{cmd:)}{col 26}{...}
-set width of table (LaTeX, HTML)
+      {cmd:width(}{it:string}{cmd:)}{col 26}{...}
+set width of table (LaTeX, {cmd:html})
+      {cmdab:attr:ibutes(}{it:string}{cmd:)}{col 26}{...}
+set table attributes ({cmd:html5})
       {cmdab:long:table}{col 26}{...}
 multi-page table (LaTeX)
       {cmd:fonttbl(}{it:string}{cmd:)}{col 26}{...}
@@ -185,7 +187,7 @@ Stata results window or, optionally, written to a text file specified
 by {cmd:using} {it:filename}. If {it:filename} is specified without
 suffix, a default suffix is added depending on the specified document
 format (".smcl" for {cmd:smcl}, ".txt" for {cmd:fixed} and {cmd:tab}, ".csv" for {cmd:csv}
-and {cmd:scsv}, ".rtf" for {cmd:rft}, ".html" for {cmd:html},
+and {cmd:scsv}, ".rtf" for {cmd:rtf}, ".html" for {cmd:html},
 ".tex" for {cmd:tex} and {cmd:booktabs}, ".md" for {cmd:md}).
 
 {p 4 4 2}
@@ -388,14 +390,15 @@ space) between coefficients to increase readability (empty rows are
 also inserted between the table's header, body, and footer, unless
 {cmd:lines} is activated). This is the default unless {cmd:wide} or
 {cmd:not} is specified. Type {cmd:nogaps} to suppress the extra
-spacing.
+spacing. Gaps are always suppressed if the output
+format {cmd:html5}.
 
 {p 4 8 2}
 {cmd:lines} adds horizontal lines to the table separating the table's
 header, body, and footer and, in the case of multiple
 equation models, the equations. This is the default. Specify {cmd:nolines}
-to suppress the lines. Lines are always suppressed in the {cmd:tab}
-and {cmd:csv} modes.
+to suppress the lines. Lines are always suppressed if the output
+format is {cmd:tab}, {cmd:csv}, or {cmd:html5}.
 
 {p 4 8 2}
 {cmd:noeqlines} suppresses the horizontal lines between equations
@@ -494,7 +497,7 @@ e.g. {cmd:addnotes({bind:"Line 1"} {bind:"Line 2"})}.
 
 {p 4 8 2}
 {cmd:smcl}, {cmd:fixed}, {cmd:tab}, {cmd:csv},  {cmd:scsv}, {cmd:rtf},
-{cmd:html}, {cmd:tex}, {cmd:booktabs}, and {cmd:md} choose the table's basic
+{cmd:html}, {cmd:html5}, {cmd:tex}, {cmd:booktabs}, and {cmd:md} choose the table's basic
 output format. The default format is {cmd:smcl} unless
 {cmd:using} is specified, in which case the default format
 depends on the filename's suffix ({cmd:smcl} for ".smcl", {cmd:csv}
@@ -541,6 +544,14 @@ processors.
 {cmd:html} produces a simple HTML formatted table.
 
 {p 8 8 2}
+{cmd:html5} produces a HTML5 formatted table. The table
+header is wrapped in {cmd:<thead>}; each equation in the table body is wrapped in
+{cmd:<tbody>}; the section containing the summary statistics is wrapped in
+{cmd:<tbody>}; the notes at the bottom of the table are wrapped in
+{cmd:<tfoot>}. Options {cmd:gaps}, {cmd:lines}, and {cmd:width()} have no
+effect; use CSS for styling.
+
+{p 8 8 2}
 {cmd:tex} produces a LaTeX formatted table.
 {p_end}
 {marker booktabs}
@@ -567,18 +578,19 @@ to be suppressed. This is relevant primarily in LaTeX and HTML mode.
 for LyX users).
 
 {p 4 8 2}
-{cmd:page}[{cmd:(}{it:packages}{cmd:)}] adds opening and closing code
+{cmd:page}[{cmd:(}{it:string}{cmd:)}] adds opening and closing code
 to define a whole LaTeX or HTML document. The default is to produce a
 raw table that can then be included into an existing LaTeX or HTML
-document. Specifying {it:packages} in parentheses causes
-{cmd:\usepackage{c -(}}{it:packages}{cmd:{c )-}} to be added to the
-preamble of the LaTeX document (note that the {it:booktabs} package
-is automatically loaded if {cmd:booktabs} is specified).
+document. In LaTeX, specifying {it:string} in parentheses causes
+{cmd:\usepackage{c -(}}{it:string}{cmd:{c )-}} to be added to the
+document preamble (note that the {it:booktabs} package
+is automatically loaded if {cmd:booktabs} is specified). In HTML, {it:string}
+will be copied as is into the document header.
 
 {p 4 8 2}
-{cmd:standalone}[{cmd:(}{it:opts}{cmd:)}] implies {cmd:page} 
+{cmd:standalone}[{cmd:(}{it:opts}{cmd:)}] implies {cmd:page}
 and uses {cmd:\documentclass[}{it:opts}{cmd:]{c -(}standlone{c )-}}
-instead of {cmd:\documentclass{c -(}article{c )-}} in the LaTeX header (see 
+instead of {cmd:\documentclass{c -(}article{c )-}} in the LaTeX header (see
 {browse "http://ctan.org/pkg/standalone"}). The default for {it:opts}
 is {cmd:varwidth}; type {cmd:standalone("")} to suppress {cmd:[}{it:opts}{cmd:]}.
 
@@ -620,12 +632,19 @@ left-aligned.
 
 {p 4 8 2}
 {cmd:width(}{it:string}{cmd:)} sets the overall width of the table in
-LaTeX or HTML. {it:string} should be LaTeX or HTML literal. For
+LaTeX or {cmd:html}. {it:string} should be LaTeX or HTML literal. For
 example, specify {cmd:width(\hsize)} in LaTeX or {cmd:width(100%)} in
 HTML to span the whole page. The table columns will spread regularly
-over the specified width. Note that in RTF mode {helpb estout}'s
+over the specified width. {cmd:width()} has no effect if the output format
+is {cmd:html5}. Note that in RTF mode {helpb estout}'s
 {cmd:varwidth()} and {cmd:modelwidth()} options may be used to change
 the width of the table columns.
+
+{p 4 8 2}
+{cmd:attributes(}{it:string}{cmd:)} includes {it:string} in the
+table's start tag if the output format is {cmd:html5}. For example, type
+{cmd:attributes(class="esttab")} to set the start tag to
+{cmd:<table class="esttab">}.
 
 {p 4 8 2}
 {cmdab:longtable} causes the {it:longtable} environment to be used in

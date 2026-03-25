@@ -1,4 +1,4 @@
-*! version 2.1.2  09apr2023  Ben Jann
+*! version 2.1.3  24mar2026  Ben Jann
 *! wrapper for estout
 
 program define esttab
@@ -169,7 +169,7 @@ program define esttab
     local rtf_pvallab         `"{\i p}-values"'
     local rtf_cilab           `"\`level'% confidence intervals"'
 // - html
-    local html_open0          `"<html> <head> "<title>`=cond(`"\`macval(title)'"'=="","estimates table, created `cdate' `ctime'","@title")'</title>" </head> <body> """'
+    local html_open0          `"<html> <head> "<title>\`=cond(`"\`macval(title)'"'=="","`cdate' `ctime'","@title")'</title>" \`macval(page2)' </head> <body> """'
     local html_close0         `""" </body> </html> """'
     local html_open           `"`"<table border="0" width="\`=cond("\`width'"=="","*","\`width'")'">"'"'
     local html_close          `""</table>""'
@@ -200,6 +200,38 @@ program define esttab
     local html_zstatlab       `"<i>z</i> statistics"'
     local html_pvallab        `"<i>p</i>-values"'
     local html_cilab          `"\`level'% confidence intervals"'
+// - html5
+    local html5_open0         `""<!doctype html>" `macval(html_open0)'"'
+    local html5_close0        `"`macval(html_close0)'"'
+    local html5_open          `"`"<table\`macval(attributes)'>"'"'
+    local html5_close         `"`macval(html_close)'"'
+    local html5_caption       `"`macval(html_caption)'"'
+    local html5_open2         `"`macval(html_open2)'"'
+    local html5_close2        `"`macval(html_close2)'"'
+    local html5_toprule       `""'
+    local html5_midrule       `""'
+    local html5_bottomrule    `""'
+    local html5_topgap        `""'
+    local html5_midgap        `""'
+    local html5_bottomgap     `""'
+    local html5_eqrule        `"begin("</tbody>" "<tbody>" "")"'
+    local html5_ssl           `"`macval(html_ssl)'"'
+    local html5_lsl           `"`macval(html_lsl)'"'
+    local html5_starlevels    `"`macval(html_starlevels)'"'
+    local html5_starlevlab    `"`macval(html_starlevlab)'"'
+    local html5_begin         `"`macval(html_begin)'"'
+    local html5_delimiter     `"`macval(html_delimiter)'"'
+    local html5_end           `"`macval(html_end)'"'
+    local html5_incelldel     `"`macval(html_incelldel)'"'
+    local html5_varwidth      `"`macval(html_varwidth)'"'
+    local html5_modelwidth    `"`macval(html_modelwidth)'"'
+    local html5_abbrev        `"`macval(html_abbrev)'"'
+    local html5_substitute    `"`macval(html_substitute)'"'
+    local html5_interaction   `"`macval(html_interaction)'"'
+    local html5_tstatlab      `"`macval(html_tstatlab)'"'
+    local html5_zstatlab      `"`macval(html_zstatlab)'"'
+    local html5_pvallab       `"`macval(html_pvallab)'"'
+    local html5_cilab         `"`macval(html_cilab)'"'
 // - tex
     local tex_open0           `""% `cdate' `ctime'" `"\documentclass\`texclass'"' \`texpkgs' \`=cond("\`longtable'"!="","\usepackage{longtable}","")' \begin{document} """'
     local tex_close0          `""" \end{document} """'
@@ -327,13 +359,14 @@ program define esttab
      ADDNotes(string asis) ///
      COMpress ///
      plain ///
-     smcl FIXed tab csv SCsv rtf HTMl tex BOOKTabs md mmd ///
+     smcl FIXed tab csv SCsv rtf HTMl html5 tex BOOKTabs md mmd ///
      Fragment ///
-     page PAGE2(str) ///
+     page PAGE2(str asis) ///
      STANDalone STANDalone2(str asis) ///
      ALIGNment(str asis) ///
      width(str asis) ///
      fonttbl(str) ///
+     ATTRibutes(str asis) ///
  /// other
      Noisily ///
      * ]
@@ -381,11 +414,14 @@ program define esttab
         di as err "width() and longtable not both allowed"
         exit 198
     }
+    if `"`macval(attributes)'"'!="" {
+        local attributes `" `macval(attributes)'"'
+    }
 
 // format modes
-    local mode `smcl' `fixed' `tab' `csv' `scsv' `rtf' `html' `tex' `booktabs' `md' `mmd'
+    local mode `smcl' `fixed' `tab' `csv' `scsv' `rtf' `html' `html5' `tex' `booktabs' `md' `mmd'
     if `:list sizeof mode'>1 {
-        di as err "only one allowed of smcl, fixed, tab, csv, scsv, rtf, html, tex, booktabs, md, or mmd"
+        di as err "only one allowed of smcl, fixed, tab, csv, scsv, rtf, html, html5, tex, booktabs, md, or mmd"
         exit 198
     }
     if `"`macval(using)'"'!="" {
@@ -417,7 +453,7 @@ program define esttab
         if inlist("`mode'","fixed","tab")         local suffix ".txt"
         else if inlist("`mode'","csv","scsv")     local suffix ".csv"
         else if "`mode'"=="rtf"                   local suffix ".rtf"
-        else if "`mode'"=="html"                  local suffix ".html"
+        else if inlist("`mode'","html","html5")   local suffix ".html"
         else if inlist("`mode'","tex","booktabs") local suffix ".tex"
         else if "`mode'"=="smcl"                  local suffix ".smcl"
         else if "`mode'"=="md"                    local suffix ".md"
@@ -433,6 +469,7 @@ program define esttab
         if "`plain'"=="" local csvlhs `"=""'
         else local csvlhs `"""'
     }
+    else if "`mode0'"=="html5" local mode0 html
     if "`compress'"!="" {
         if "``mode'_modelwidth'"!="" {
             local `mode'_modelwidth = ``mode'_modelwidth' - 3
@@ -469,6 +506,11 @@ program define esttab
     if inlist("`mode0'", "tab", "csv") {
         local lines
         local eqlines
+    }
+    else if ("`mode'"=="html5") {
+        local gaps
+        local lines
+        local eqlines eqlines
     }
     if "`notes'"!="" & "`nolegend'"=="" & `nocellsopt'==1 & `matrixmode'==0 local legend legend
     if "`plain'"!="" {
@@ -747,11 +789,12 @@ program define esttab
             local rtf_fonttbl `"`fonttbl'"'
         }
         if "`page'"!="" {
-            local texclass "{article}"
-            if "`standalone'"!="" local texclass "`standalone2'{standalone}"
-            else                  local texclass "{article}"
-            if `"`page2'"'!="" {
-                local texpkgs `""\usepackage{`page2'}""'
+            if "`mode0'"=="tex" {
+                if "`standalone'"!="" local texclass "`standalone2'{standalone}"
+                else                  local texclass "{article}"
+                if `"`page2'"'!="" {
+                    local texpkgs `"`"\usepackage{`page2'}"'"'
+                }
             }
             local opening `"``mode'_open0'"'
         }
@@ -819,6 +862,9 @@ program define esttab
             }
             if `"`macval(closing)'"'!="" {
                 local closing `""<tr><td colspan=@span>" `macval(closing)' "</td></tr>""'
+                if "`mode'"=="html5" {
+                    local closing `""<tfoot>" `macval(closing)' "</tfoot>""'
+                }
             }
         }
         else if "`mode0'"=="tex" {
@@ -884,6 +930,9 @@ program define esttab
         else if `"`gaps'"'!="" {
             local opening `"`macval(opening)' `macval(topgap)'"'
         }
+        else if "`mode'"=="html5" {
+            local opening `"`macval(opening)' "<thead>""'
+        }
         SaveRetok `macval(opening)'
         local opening `"`macval(value)'"'
         if `"`macval(opening)'"'!="" {
@@ -898,6 +947,9 @@ program define esttab
         else if `"`gaps'"'!="" {
             local posthead `"posthead(`macval(midgap)')"'
         }
+        else if "`mode'"=="html5" {
+            local posthead `"posthead("</thead>" "<tbody>")"'
+        }
     }
 // - compose prefoot()
     if `"`macval(prefoot)'"'=="" & `"`macval(stats)'"'!="" {
@@ -906,6 +958,9 @@ program define esttab
         }
         else if `"`gaps'"'!="" {
             local prefoot `"prefoot(`macval(midgap)')"'
+        }
+        else if "`mode'"=="html5" {
+            local prefoot `"prefoot("</tbody>" "<tbody>")"'
         }
         if `"`cells'"'=="cells(none)" local prefoot
     }
@@ -916,6 +971,9 @@ program define esttab
         }
         else if `"`gaps'"'!="" {
             local closing `"`macval(bottomgap)' `macval(closing)'"'
+        }
+        else if "`mode'"=="html5" {
+            local closing `""</tbody>" `macval(closing)'"'
         }
         SaveRetok `macval(closing)'
         local closing `"`macval(value)'"'

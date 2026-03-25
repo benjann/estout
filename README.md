@@ -28,6 +28,19 @@ Installation from GitHub:
 
 Main changes:
 
+    25mar2026 
+    estout.ado (3.33)
+    - option lastend() added
+    esttab.ado (2.1.3)
+    - HTML output format:
+      o the page title in now set to the current date and time if option -page-
+        is specified and no custom -title()- is provided
+      o option -page(str)- now prints str in the page header
+    - new -html5- option
+      o creates a structured HTML table using <thead> and <tbody> tags
+      o option -attributes()- can be used to set table attributes
+      o options -width()-, -gaps-, and -lines- have no effect with -html5-
+
     09apr2023
     estout.ado (3.32); ettab.ado (2.1.2)
     - Windows network paths starting with a double backslash (\\) did not work; this
