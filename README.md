@@ -28,6 +28,11 @@ Installation from GitHub:
 
 Main changes:
 
+    13apr2026
+    esttab.ado (2.1.4)
+    - esttab v2.1.3 did not work in Stata 14 or older because it called -syntax-
+      with more than 70 options; this is fixed
+
     25mar2026 
     estout.ado (3.33)
     - option lastend() added

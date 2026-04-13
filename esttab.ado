@@ -1,4 +1,4 @@
-*! version 2.1.3  24mar2026  Ben Jann
+*! version 2.1.4  13apr2026  Ben Jann
 *! wrapper for estout
 
 program define esttab
@@ -354,8 +354,6 @@ program define esttab
      sfmt(string) ///
  /// layout
      NOMTItles MTItles MTItles2(string asis) ///
-     NOGAPs GAPs ///
-     NOLInes LInes ///
      ADDNotes(string asis) ///
      COMpress ///
      plain ///
@@ -1119,6 +1117,8 @@ program _more_syntax
     local theoptions ///
         NODEPvars DEPvars ///
         NOPArentheses PArentheses ///
+        NOGAPs GAPs ///
+        NOLInes LInes ///
         BRackets ///
         NONOTEs NOTEs /// without s in helpfile
         LONGtable ///
