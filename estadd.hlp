@@ -1,5 +1,5 @@
 {smcl}
-{* 01feb2017}{...}
+{* 23oct2026}{...}
 {hi:help estadd}{right:also see: {helpb esttab}, {helpb estout}, {helpb eststo}, {helpb estpost}}
 {right: {browse "http://repec.sowi.unibe.ch/stata/estout/"}}
 {hline}
@@ -921,7 +921,7 @@ for an example.
 
 {title:Author}
 
-{p 4 4 2} Ben Jann, Institute of Sociology, University of Bern, jann@soz.unibe.ch
+{p 4 4 2} Ben Jann, Institute of Sociology, University of Bern, ben.jann@unibe.ch
 
 
 {title:Also see}

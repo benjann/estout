@@ -1,5 +1,5 @@
 {smcl}
-{* 25mar2026}{...}
+{* 23oct2026}{...}
 {cmd:help estout}{right:also see: {helpb esttab}, {helpb eststo}, {helpb estadd}, {helpb estpost}}
 {right: {browse "http://repec.sowi.unibe.ch/stata/estout/"}}
 {hline}
@@ -134,6 +134,10 @@ identify 0/1 variables (if {cmd:margin})
 select equations for marginal effects
       {helpb estout##dropped:dropped}[{cmd:(}{it:string}{cmd:)}] | {cmd:nodropped}{col 38}{...}
 indicate null coefficients as dropped
+      {helpb estout##bmatrix:{ul:bmat}rix}{cmd:(}{it:name}{cmd:)}{col 38}{...}
+read coefficients from {cmd:e(}{it:name}{cmd:)}
+      {helpb estout##vmatrix:{ul:vmat}rix}{cmd:(}{it:name}{cmd:)}{col 38}{...}
+read variance matrix from {cmd:e(}{it:name}{cmd:)}
       {helpb estout##level:level}{cmd:(}{it:#}{cmd:)}{col 38}{...}
 set level for confidence intervals
 
@@ -868,6 +872,20 @@ label the table's left stub
     (coefficients for which {cmd:e(b)} and {cmd:e(V)} is zero) to be indicated
     as dropped. {it:string} specifies the text to be printed in place of
     the estimates. The default text is "(dropped)".
+    {p_end}
+{marker bmatrix}
+{p 4 8 2}
+    {cmd:bmatrix(}{it:name}{cmd:)} causes the coefficient estimates to be obtained
+    from {cmd:e(}{it:name}{cmd:)} instead of {cmd:e(b)}. This will affect
+    all results that depend on the coefficient estimates (such as
+    p-values and confidence intervals).
+    {p_end}
+{marker vmatrix}
+{p 4 8 2}
+    {cmd:vmatrix(}{it:name}{cmd:)} causes the variance estimates to be obtained
+    from {cmd:e(}{it:name}{cmd:)} instead of {cmd:e(V)}. This will affect
+    all results that depend on the variance estimates (such as
+    p-values and confidence intervals).
     {p_end}
 {marker level}
 {p 4 8 2}
@@ -2437,7 +2455,7 @@ Vince Wiggins.
 {marker aut}
 {title:Author}
 
-    Ben Jann, Institute of Sociology, University of Bern, jann@soz.unibe.ch
+    Ben Jann, Institute of Sociology, University of Bern, ben.jann@unibe.ch
 
 {marker als}
 {title:Also see}

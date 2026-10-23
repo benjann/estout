@@ -28,6 +28,10 @@ Installation from GitHub:
 
 Main changes:
 
+    23oct2026
+    estout.ado (3.34)
+    - options bmatrix() and vmatrix() added
+
     13apr2026
     esttab.ado (2.1.4)
     - esttab v2.1.3 did not work in Stata 14 or older because it called -syntax-

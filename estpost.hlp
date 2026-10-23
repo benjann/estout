@@ -1,5 +1,5 @@
 {smcl}
-{* 19may2021}{...}
+{* 23oct2026}{...}
 {hi:help estpost}{right:also see: {helpb esttab}, {helpb estout}, {helpb eststo}, {helpb estadd}}
 {right: {browse "http://repec.sowi.unibe.ch/stata/estout/"}}
 {hline}
@@ -1506,7 +1506,7 @@ also copies all other matrixes, scalars, and macros from {helpb margins} into
 
 {title:Author}
 
-{p 4 4 2} Ben Jann, Institute of Sociology, University of Bern, jann@soz.unibe.ch
+{p 4 4 2} Ben Jann, Institute of Sociology, University of Bern, ben.jann@unibe.ch
 
 {p 4 4 2} {cmd:estpost gtabstat} has been contributed by Mauricio Caceres Bravo.
 

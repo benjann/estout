@@ -3,7 +3,7 @@ d estout: module to make regression tables
 d 
 d Author: Ben Jann, University of Bern, ben.jann@unibe.ch
 d
-d Distribution-Date: 20260413
+d Distribution-Date: 20261023
 f _eststo.ado
 f _eststo.hlp
 f estadd.ado

@@ -1,10 +1,11 @@
-*! version 3.33  23mar2026  Ben Jann
+*! version 3.34  23oct2026  Ben Jann
 
 program define estout, rclass
     version 8.2
     return local cmdline estout `macval(0)'
     syntax [anything] [using] [ , ///
         Cells(string asis) ///
+        BMATrix(string) VMATrix(string) ///
         Drop(string asis)  ///
         Keep(string asis) ///
         Order(string asis) ///
@@ -342,6 +343,10 @@ program define estout, rclass
     if "`smclrules'"!="" & "`nosmclmidrules'"=="" local smclmidrules smclmidrules
     if "`smclmidrules'"!="" & "`nosmcleqrules'"=="" local smcleqrules smcleqrules
     local haslabcol2 = (`"`macval(labcol2)'"'!="")
+    if `"`bmatrix'"'=="" local bmatrix "bmatrix(b)"
+    else                 local bmatrix `"bmatrix(`bmatrix')"'
+    if `"`vmatrix'"'=="" local vmatrix "vmatrix(V)"
+    else                 local vmatrix `"vmatrix(`vmatrix')"'
 
 *title/notes option
     if `"`macval(prehead)'`macval(posthead)'`macval(prefoot)'`macval(postfoot)'"'=="" {
@@ -526,7 +531,7 @@ program define estout, rclass
         local temp names(`models') coefs(`values1mrow') stats(`stats'`p') ///
             `rename' margin(`margin') meqs(`meqs') dropped(`droppedison') level(`level') ///
             transform(`transform') transformpattern(`transformpattern') ///
-            `omitted' `baselevels'
+            `bmatrix' `vmatrix' `omitted' `baselevels'
         _estout_getres, `equations' `temp'
         local ccols = r(ccols)
         if `"`equations'"'=="" & "`unstack'"=="" & `ccols'>0 { // specify equations("") to deactivate
@@ -2466,8 +2471,8 @@ program _estout_getres, rclass
     syntax, names(str) [ coefs(str asis) stats(str asis) equations(str) ///
         rename(str asis) margin(str asis) meqs(str asis) ///
         dropped(int 0) level(int 95) ///
-        transform(str asis)  transformpattern(str asis) ///
-        omitted baselevels ]
+        transform(str asis) transformpattern(str asis) ///
+        bmatrix(name) vmatrix(name) omitted baselevels ]
     // coefs: coef "coef O/1 #" `"coef O/1 "rowname""' etc...
 
     tempname bc bbc bs bbs st
@@ -2500,6 +2505,7 @@ program _estout_getres, rclass
     local hasbVs = `"`: list coefnms & bVs'"'!=""
     local hastransform = (`"`transform'"'!="") & `hasbVs'
     local getbV = cond(`hasbVs' | `dropped', "b var ", "")
+    local custombV = ("`bmatrix'"!="b") | ("`vmatrix'"!="V")
 
     tempname hcurrent esample
     local estcycle = ("`names'"!=".")
@@ -2531,8 +2537,9 @@ program _estout_getres, rclass
 
             // get coefficients
             capture noisily break {
-                CheckEqs `"`getbV'`coefs'"'                 // sets local seqmerge
-                GetCoefs `bc' `seqmerge' `"`getbV'`coefs'"' // sets local hasbc
+                CheckEqs "`bmatrix'" `"`getbV'`coefs'"' // sets local seqmerge
+                GetCoefs "`bmatrix'" "`vmatrix'" `bc' `seqmerge' /*
+                     */ `"`getbV'`coefs'"' // sets local hasbc
                 if `hasbc' {
                     mat coln `bc' = `getbV'`coefnms'
                     SubstEmptyEqname `bc' // replace empty eqname "_" by "__"
@@ -2553,7 +2560,8 @@ program _estout_getres, rclass
                         GetMarginals `bc' "`margin'" `"`meqs'"' // resets local hasmargin
                     }
                     if `hasbVs' {
-                        ComputeCoefs `bc' `hasmargin' `"`coefnms'"' `level'
+                        ComputeCoefs `bc' `hasmargin' `"`coefnms'"' `level'/*
+                            */ `custombV' 
                     }
                     if `hastransform' & `hasbVs' {
                         if `"`transformpattern'"'!="" {
@@ -2575,7 +2583,7 @@ program _estout_getres, rclass
             if `rc'==0 {
                 capture noisily break {
                     if "`stats'" != "" {
-                        GetStats "`stats'" `bbs' `ni'
+                        GetStats "`vmatrix'" "`stats'" `bbs' `ni'
                         if `hasbc'>0 & inlist(`"`e(cmd)'"', "reg3", "sureg", "mvreg") {
                             GetEQStats "`stats'" `bbs' `ni' `bc'
                         }
@@ -2871,7 +2879,7 @@ end
 // Source: est_table.ado  version 1.1.4  09oct2008  (modified)
 // Modification: returns string scalars in r(m`ni'_name) (and sets `bbs' = .y)
 program GetStats, rclass
-    args stats bbs ni
+    args vmatrix stats bbs ni
     tempname rank st V
     local escalars : e(scalars)
     local emacros : e(macros)
@@ -2880,7 +2888,7 @@ program GetStats, rclass
         local ++is
         if inlist("`stat'", "aic", "bic", "rank") {
             if "`hasrank'" == "" {
-                capt mat `V' = syminv(e(V))
+                capt mat `V' = syminv(e(`vmatrix'))
                 local rc = _rc
                 if `rc' == 0 {
                     scalar `rank' = colsof(`V') - diag0cnt(`V')
@@ -2890,7 +2898,7 @@ program GetStats, rclass
                 }
                 else {
                     // rc<>0; show error message
-                    mat `V' = syminv(e(V))
+                    mat `V' = syminv(e(`vmatrix'))
                 }
                 local hasrank 1
             }
@@ -2981,7 +2989,7 @@ program GetEQStats, rclass  // eq-specific stats for reg3, sureg, and mvreg (set
 end
 
 program CheckEqs
-    args coefs
+    args bmatrix coefs
     tempname tmp
     local j 0
     local bVs "b _star _sign _sigsign"
@@ -2993,9 +3001,9 @@ program CheckEqs
         gettoken transpose row : row
         gettoken row : row, q
         if `"`coef'"'=="b" & `j'==1 {
-            capt confirm mat e(`coef')
+            capt confirm mat e(`bmatrix')
             if _rc continue
-            mat `tmp' = e(`coef')
+            mat `tmp' = e(`bmatrix')
             local eqs: coleq `tmp', q
             if `:list posof "_" in eqs'==0 {
                 local seqmerge 1
@@ -3052,7 +3060,7 @@ program RestoreEmptyEqnames // replace equation name "__" by "_"
 end
 
 program GetCoefs
-    args bc seqmerge coefs
+    args bmatrix vmatrix bc seqmerge coefs
     tempname tmp
     local hasbc 0
     local j 0
@@ -3070,15 +3078,23 @@ program GetCoefs
         }
         if `j'==2 & `"`coef'"'=="var" {
             local isinbVs 1
-            capt mat `tmp' = vecdiag(e(V))
-            if _rc {
-                capt confirm mat e(se)
-                if _rc==0 {
-                    mat `tmp' = e(se)
-                    forv i = 1/`=colsof(`tmp')' {
-                        mat `tmp'[1, `i'] = `tmp'[1, `i']^2
+            capt mat `tmp' = vecdiag(e(`vmatrix'))
+            if _rc { // try e(se) as fallback (as long as vmatrix()=="V")
+                if "`vmatrix'"=="V" {
+                    capt confirm mat e(se)
+                    if _rc==0 {
+                        mat `tmp' = e(se)
+                        forv i = 1/`=colsof(`tmp')' {
+                            mat `tmp'[1, `i'] = `tmp'[1, `i']^2
+                        }
                     }
                 }
+            }
+        }
+        else if `j'==1 & `"`coef'"'=="b" {
+            capt confirm mat e(`bmatrix')
+            if _rc==0 {
+                mat `tmp' = e(`bmatrix')
             }
         }
         else {
@@ -3174,7 +3190,7 @@ program SEQMerge
 end
 
 program ComputeCoefs
-    args bc hasmargin coefs level
+    args bc hasmargin coefs level custombV
     local bVs1 "b _star _sign _sigsign"
     local bVs2 "se var t z p ci_l ci_u"
     local c = colsof(`bc')
@@ -3186,7 +3202,7 @@ program ComputeCoefs
             continue
         }
         if `: list v in bVs2' {
-            if `hasmargin' {
+            if `hasmargin' | `custombV' {
                 ComputeCoefs_`v' `bc' `j' `level'
                 continue
             }
